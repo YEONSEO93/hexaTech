@@ -21,8 +21,9 @@
 ## Getting Started
 
 ### 1. Clone the repo
-git clone https://github.com/your-username/event-dashboard.git
-cd event-dashboard
+git clone https://github.com/YEONSEO93/hexaTech.git
+
+cd hexaTech
 
 ### 2. Install dependencies
 npm install
