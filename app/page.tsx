@@ -1,10 +1,13 @@
-import { Button } from "@/components/ui/button";
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  return (
-    <div>
-      <h1 className="text-amber-800 font-bold">Hello HexaTech!</h1>
-      <Button>Start</Button>
-    </div>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push("/login");
+  }, [router]);
+
+  return null;
 }
