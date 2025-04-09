@@ -20,7 +20,7 @@ export function Sidebar() {
       </div>
 
       <div className="flex flex-1 flex-col space-y-1">
-        <div className="flex items-center justify-center gap-6 mb-12">
+        <div className="flex items-center justify-center gap-6 mb-8">
           <button className="rounded-full p-2.5 hover:bg-gray-100">
             <IconUser className="h-6 w-6 text-gray-600" />
           </button>

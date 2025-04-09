@@ -9,14 +9,14 @@ import { PageHeader } from "@/components/PageHeader";
 
 export default function Setting() {
   return (
-    <div className="flex">
+    <>
       <Sidebar />
-      <div className="flex-1 ml-[260px] p-8 bg-[#F8F9FA] min-h-screen">
+      <div className="min-h-screen pl-[260px] p-8 bg-[#F8F9FA] min-h-screen">
         <PageHeader title="Settings" />
 
         <div className="mt-8 flex gap-12">
           {/* Navigation */}
-          <div className="w-48">
+          <div className="w-56 pl-8">
             <nav className="flex flex-col space-y-1 bg-white rounded-lg shadow-sm">
               <div className="bg-gray-100 text-gray-900 px-3 py-2 rounded-md font-medium">
                 Edit Profile
@@ -87,6 +87,6 @@ export default function Setting() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

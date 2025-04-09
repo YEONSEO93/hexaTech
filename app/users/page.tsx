@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { ProductService } from "./data";
@@ -23,6 +25,7 @@ interface Product {
 }
 
 export default function Users() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -35,7 +38,11 @@ export default function Users() {
         <div className="flex items-center justify-between">
           <PageHeader title="User Management" />
           <div className="px-8 py-4">
-            <Button size="sm" className="px-6 py-2.5">
+            <Button
+              size="sm"
+              className="px-6 py-2.5"
+              onClick={() => router.push("/users/create")}
+            >
               CREATE USER
             </Button>
           </div>
