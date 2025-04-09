@@ -1,13 +1,11 @@
-import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   /* config options here */
   async redirects() {
     return [
-      // Redirect to '/dashboard' by default
       {
         source: "/",
-        destination: "/dashboard",
+        destination: "/login",
         permanent: true,
       },
     ];
