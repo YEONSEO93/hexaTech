@@ -7,12 +7,15 @@ import { PageHeader } from "@/components/PageHeader";
 import { Sidebar } from "@/components/sidebar";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import MainLayout from "@/components/layouts/MainLayout";
 
 export default function CreateUserPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
+  const [company, setCompany] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +24,7 @@ export default function CreateUserPage() {
   return (
     <>
       <Sidebar />
-      <div className="min-h-screen pl-[260px] p-8 bg-[#F8F9FA]">
+      <MainLayout>
         <PageHeader title="Create User" />
         <div className="p-8 flex justify-start">
           <div className="w-[600px] bg-white rounded-lg p-6 shadow-sm">
@@ -46,6 +49,20 @@ export default function CreateUserPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              <Input
+                id="Role"
+                label="Role"
+                type="text"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              />
+              <Input
+                id="company"
+                label="Company"
+                type="text"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+              />
               <div className="flex justify-end space-x-4">
                 <Button type="button" onClick={() => router.back()}>
                   Cancel
@@ -55,7 +72,7 @@ export default function CreateUserPage() {
             </form>
           </div>
         </div>
-      </div>
+      </MainLayout>
     </>
   );
 }

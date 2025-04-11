@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { ProductService } from "./data";
+import MainLayout from "@/components/layouts/MainLayout";
 
 interface Product {
   id: string;
@@ -34,7 +35,7 @@ export default function Users() {
   return (
     <>
       <Sidebar />
-      <div className="min-h-screen pl-[260px] p-8 bg-[#F8F9FA]">
+      <MainLayout>
         <div className="flex items-center justify-between">
           <PageHeader title="User Management" />
           <div className="px-8 py-4">
@@ -79,7 +80,7 @@ export default function Users() {
             ></Column>
           </DataTable>
         </div>
-      </div>
+      </MainLayout>
     </>
   );
 }
