@@ -2,13 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-<<<<<<< HEAD
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-=======
-import { Button } from "primereact/button";
->>>>>>> origin/dev
 
 const LoginPage = () => {
   const router = useRouter();
@@ -40,7 +36,6 @@ const LoginPage = () => {
             />
           </Link>
         </div>
-<<<<<<< HEAD
         <div className="flex flex-1 items-start justify-center">
           <div className="w-full max-w-md space-y-8">
             <div>
@@ -86,14 +81,6 @@ const LoginPage = () => {
                 </Button>
               </div>
             </form>
-=======
-        <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs">
-            <LoginForm />
-            <Button className="bg-amber-700 p-4 rounded-4xl">
-              Test Prime React
-            </Button>
->>>>>>> origin/dev
           </div>
         </div>
       </div>
