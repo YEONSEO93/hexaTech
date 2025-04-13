@@ -1,6 +1,7 @@
 import { LoginForm } from "@/components/login-form";
 import Link from "next/link";
 import Image from "next/image";
+import { Button } from "primereact/button";
 
 const LoginPage = () => {
   return (
@@ -21,6 +22,9 @@ const LoginPage = () => {
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
             <LoginForm />
+            <Button className="bg-amber-700 p-4 rounded-4xl">
+              Test Prime React
+            </Button>
           </div>
         </div>
       </div>
