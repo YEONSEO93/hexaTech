@@ -22,7 +22,6 @@
       "@/*": ["./*"]
     }
   },
-<<<<<<< HEAD
   "include": [
     "next-env.d.ts",
     "**/*.ts",
@@ -30,8 +29,5 @@
     ".next/types/**/*.ts",
     "next.config.ts"
   ],
-=======
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "next.config.mjs"],
->>>>>>> origin/dev
   "exclude": ["node_modules"]
 }
