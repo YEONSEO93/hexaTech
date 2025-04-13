@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-export default function DashboardPage() {
+export default function AdminDashboard() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAdminRole = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -17,26 +18,30 @@ export default function DashboardPage() {
           return;
         }
 
-        // Check user role
-        const { data: userData } = await supabase
+        const { data: userData, error: roleError } = await supabase
           .from('users')
           .select('role')
           .eq('id', session.user.id)
           .single();
 
-        if (userData?.role === 'admin') {
-          router.push('/admin/dashboard');
-        } else {
+        if (roleError || userData?.role !== 'admin') {
           router.push('/users');
+          return;
         }
+
+        setLoading(false);
       } catch (error) {
         console.error('Error:', error);
         router.push('/login');
       }
     };
 
-    checkAuth();
+    checkAdminRole();
   }, [router]);
 
-  return <h1>Loading...</h1>;
+  if (loading) {
+    return <h1>Loading...</h1>;
+  }
+
+  return <h1>testing-admin dashboard</h1>;
 } 
