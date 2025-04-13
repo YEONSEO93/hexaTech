@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import { Sidebar } from "@/components/sidebar";
@@ -24,6 +25,9 @@ interface Product {
   inventoryStatus: string;
   rating: number;
 }
+=======
+import { Button } from "@/components/ui/button";
+>>>>>>> origin/dev
 
 export default function Users() {
   const router = useRouter();
@@ -33,6 +37,7 @@ export default function Users() {
     ProductService.getProductsMini().then((d) => setProducts(d));
   }, []);
   return (
+<<<<<<< HEAD
     <>
       <Sidebar />
       <MainLayout>
@@ -82,5 +87,13 @@ export default function Users() {
         </div>
       </MainLayout>
     </>
+=======
+    <div>
+      <h1>Users Page</h1>
+      <Button type="button" className="w-full">
+        Create New User
+      </Button>
+    </div>
+>>>>>>> origin/dev
   );
 }
