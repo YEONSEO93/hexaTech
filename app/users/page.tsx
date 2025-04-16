@@ -11,6 +11,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { ProductService } from "./data";
 import MainLayout from "@/components/layouts/MainLayout";
+import BaseTable from "@/components/ui/base-table";
 
 interface Product {
   id: string;
@@ -49,36 +50,15 @@ export default function Users() {
           </div>
         </div>
         <div className="p-8">
-          <DataTable
+          <BaseTable
             value={products}
-            sortMode="multiple"
-            tableStyle={{ minWidth: "50rem" }}
-          >
-            <Column
-              field="code"
-              header="Code"
-              sortable
-              style={{ width: "25%" }}
-            ></Column>
-            <Column
-              field="name"
-              header="Name"
-              sortable
-              style={{ width: "25%" }}
-            ></Column>
-            <Column
-              field="category"
-              header="Category"
-              sortable
-              style={{ width: "25%" }}
-            ></Column>
-            <Column
-              field="quantity"
-              header="Quantity"
-              sortable
-              style={{ width: "25%" }}
-            ></Column>
-          </DataTable>
+            columns={[
+              { field: "code", header: "Code", sortable: true },
+              { field: "name", header: "Name", sortable: true },
+              { field: "category", header: "Category", sortable: true },
+              { field: "quantity", header: "Quantity", sortable: true },
+            ]}
+          ></BaseTable>
         </div>
       </MainLayout>
     </>
