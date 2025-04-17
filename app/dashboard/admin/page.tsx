@@ -2,46 +2,50 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAdminRole = async () => {
+    const checkAdminAccess = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error || !session) {
+          console.log('No session found, redirecting to login');
           router.push('/login');
           return;
         }
 
-        const { data: userData, error: roleError } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-
-        if (roleError || userData?.role !== 'admin') {
-          router.push('/users');
+        const role = session.user.user_metadata.role;
+        if (role !== 'admin') {
+          console.log('User is not admin, redirecting to dashboard');
+          router.push('/dashboard');
           return;
         }
 
+        setUserEmail(session.user.email || null);
         setLoading(false);
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error checking admin access:', error);
         router.push('/login');
       }
     };
 
-    checkAdminRole();
+    checkAdminAccess();
   }, [router]);
 
   if (loading) {
-    return <h1>Loading...</h1>;
+    return <div>Loading...</div>;
   }
 
-  return <h1>testing-admin dashboard</h1>;
+  return (
+    <div>
+      <h1>Admin Dashboard</h1>
+      <h1>Hello {userEmail}</h1>
+    </div>
+  );
 } 

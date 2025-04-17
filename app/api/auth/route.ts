@@ -27,8 +27,9 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { username, password } = body;
+    // const body = await request.json();
+    // const { username, password } = body;
+    const { username, password } = await request.json();
 
     if (!username || !password) {
       return addCorsHeaders(NextResponse.json(

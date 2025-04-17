@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { checkSession } from "@/lib/supabase";
+import { checkSession, signInWithEmail } from "@/lib/supabase/auth";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -50,39 +50,22 @@ const LoginPage = () => {
         throw new Error('Please enter both email and password');
       }
 
-      // Use the API endpoint for authentication
-      console.log('Sending request to /api/auth');
-      const response = await fetch('/api/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: email.trim(), // API expects username field
-          password: password.trim(),
-        }),
-      });
-
-      console.log('Auth response status:', response.status);
-      const data = await response.json();
-      console.log('Auth response data:', data);
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to login');
+      // Use the auth utility for sign in
+      const { data, error: signInError } = await signInWithEmail(email.trim(), password.trim());
+      
+      if (signInError) {
+        throw new Error(typeof signInError === 'string' ? signInError : 'Failed to sign in');
       }
 
-      if (!data.session) {
+      if (!data?.session) {
         throw new Error('No session data returned');
       }
 
-      // Store the session in localStorage
-      localStorage.setItem('supabase.auth.token', JSON.stringify({
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      }));
-
       // Redirect based on role
-      if (data.user.role === 'admin') {
+      const role = data.user?.user_metadata?.role || 'user';
+      console.log('Login successful, user role:', role);
+      
+      if (role === 'admin') {
         console.log('Redirecting admin to dashboard/admin');
         router.push("/dashboard/admin");
       } else {
