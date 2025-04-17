@@ -11,7 +11,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { ProductService } from "./data";
 import MainLayout from "@/components/layouts/MainLayout";
-import BaseTable from "@/components/ui/base-table";
+import BaseTable from "@/components/ui/base-table/base-table";
 
 interface Product {
   id: string;
@@ -53,10 +53,30 @@ export default function Users() {
           <BaseTable
             value={products}
             columns={[
-              { field: "code", header: "Code", sortable: true },
-              { field: "name", header: "Name", sortable: true },
-              { field: "category", header: "Category", sortable: true },
-              { field: "quantity", header: "Quantity", sortable: true },
+              {
+                field: "code",
+                header: "Code",
+                sortable: true,
+                filter: true,
+              },
+              {
+                field: "name",
+                header: "Name",
+                sortable: true,
+                filter: true,
+              },
+              {
+                field: "category",
+                header: "Category",
+                sortable: true,
+                filter: true,
+              },
+              {
+                field: "quantity",
+                header: "Quantity",
+                sortable: true,
+                filter: true,
+              },
             ]}
           ></BaseTable>
         </div>
