@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { createAdminClient } from '@/lib/supabase/client';
 
 // Helper function to generate a secure temporary password
 function generateTempPassword(): string {
@@ -21,40 +16,31 @@ function generateTempPassword(): string {
 }
 
 // Get all users (admin only)
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Get the user's token from the Authorization header
-    const token = request.headers.get('Authorization')?.split('Bearer ')[1];
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Verify the user is an admin
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { data: userData, error: roleError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (roleError || userData.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
+    console.log('=== List Users Request ===');
+    
+    const supabase = createAdminClient();
+    
     // Fetch all users
-    console.log('Admin fetching users list');
+    console.log('Fetching users list...');
     const { data, error } = await supabase
       .from('users')
       .select('id, email, role, created_at')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
 
-    console.log(`Found ${data.length} users`);
+    // Add debug logging
+    console.log('Query result:', {
+      hasData: !!data,
+      count: data?.length || 0,
+      users: data
+    });
+
     return NextResponse.json({ data });
   } catch (error) {
     console.error('Failed to fetch users:', error);
@@ -74,43 +60,51 @@ export async function POST(request: NextRequest) {
     // Create collaborator (admin only)
     if (pathname.endsWith('/collaborator')) {
       const { email } = body;
+      
+      if (!email) {
+        return NextResponse.json(
+          { error: 'Email is required' },
+          { status: 400 }
+        );
+      }
+
       console.log('Creating new collaborator:', email);
+      const supabase = createAdminClient();
 
-      // Verify admin token
-      const token = request.headers.get('Authorization')?.split('Bearer ')[1];
-      if (!token) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-
-      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-      if (authError || !user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-
-      const { data: adminData, error: roleError } = await supabase
+      // Check if user already exists
+      const { data: existingUser } = await supabase
         .from('users')
-        .select('role')
-        .eq('id', user.id)
+        .select('id')
+        .eq('email', email)
         .single();
 
-      if (roleError || adminData.role !== 'admin') {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      if (existingUser) {
+        return NextResponse.json(
+          { error: 'User already exists' },
+          { status: 409 }
+        );
       }
 
-      // Create collaborator
+      // Create collaborator with role in metadata
       const tempPassword = generateTempPassword();
       const { data: authData, error: createError } = await supabase.auth.admin.createUser({
         email,
         password: tempPassword,
-        email_confirm: true
+        email_confirm: true,
+        user_metadata: {
+          role: 'collaborator'
+        }
       });
 
       if (createError) {
         console.error('Failed to create collaborator auth:', createError);
-        return NextResponse.json({ error: 'Failed to create collaborator' }, { status: 500 });
+        return NextResponse.json(
+          { error: 'Failed to create collaborator' },
+          { status: 500 }
+        );
       }
 
-      // Add to users table
+      // Add to users table for additional data
       const { error: userError } = await supabase
         .from('users')
         .insert([{
@@ -122,7 +116,12 @@ export async function POST(request: NextRequest) {
 
       if (userError) {
         console.error('Failed to set collaborator role:', userError);
-        return NextResponse.json({ error: 'Failed to set collaborator role' }, { status: 500 });
+        // Clean up auth user if database insert fails
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        return NextResponse.json(
+          { error: 'Failed to create user record' },
+          { status: 500 }
+        );
       }
 
       console.log('Successfully created collaborator:', email);

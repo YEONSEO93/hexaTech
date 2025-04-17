@@ -1,0 +1,254 @@
+{
+	"id": "8ee1c6f9-8223-46c6-b6bf-2499bbd963b8",
+	"name": "Event Dashboard Management",
+	"timestamp": "2025-04-15T22:53:51.820Z",
+	"collection_id": "34643543-d4ac2e4e-142c-4c15-bd4a-5d002d2e0dcc",
+	"folder_id": 0,
+	"environment_id": "34643543-ec921ca2-263d-4e2c-b632-594249a28d7b",
+	"totalPass": 0,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-04-15T22:53:49.651Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "d594cfba-d0ba-48be-a576-a336c314c1e3",
+			"name": "Login",
+			"url": "http://localhost:3000/api/auth",
+			"time": 973,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Save and verify token": {
+					"status": "pass",
+					"logs": [
+						"=== Login Response Analysis ===",
+						"Status: 200",
+						"Response headers: [object Object]",
+						"Full response: [object Object]",
+						"=== Token Verification ===",
+						"Token saved: eyJhbGciOiJIUzI1NiIs...",
+						"Token length: 200",
+						"User ID: 12345678-1234-1234-1234-123456789012",
+						"User Role: admin",
+						"User Email: admin2@hexatech.com"
+					]
+				}
+			},
+			"testPassFailCounts": {
+				"pass": 1,
+				"fail": 0
+			},
+			"times": [973],
+			"allTests": [
+				{
+					"Save and verify token": {
+						"status": "pass",
+						"logs": [
+							"=== Login Response Analysis ===",
+							"Status: 200",
+							"Response headers: [object Object]",
+							"Full response: [object Object]",
+							"=== Token Verification ===",
+							"Token saved: eyJhbGciOiJIUzI1NiIs...",
+							"Token length: 200",
+							"User ID: 12345678-1234-1234-1234-123456789012",
+							"User Role: admin",
+							"User Email: admin2@hexatech.com"
+						]
+					}
+				}
+			]
+		},
+		{
+			"id": "2fa7e3d1-c409-4dad-9167-19c14f5845e4",
+			"name": "Get Current User",
+			"url": "http://localhost:3000/api/auth",
+			"time": 219,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Response Analysis": {
+					"status": "pass",
+					"logs": [
+						"=== Response Analysis ===",
+						"Status: 200",
+						"Response headers: [object Object]",
+						"Response body: [object Object]"
+					]
+				}
+			},
+			"testPassFailCounts": {
+				"pass": 1,
+				"fail": 0
+			},
+			"times": [219],
+			"allTests": [
+				{
+					"Response Analysis": {
+						"status": "pass",
+						"logs": [
+							"=== Response Analysis ===",
+							"Status: 200",
+							"Response headers: [object Object]",
+							"Response body: [object Object]"
+						]
+					}
+				}
+			]
+		},
+		{
+			"id": "24dcf3fe-b781-44fe-ad40-b079635c0ddb",
+			"name": "List Users (Admin Only)",
+			"url": "http://localhost:3000/api/users",
+			"time": 89,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Response Analysis": {
+					"status": "pass",
+					"logs": [
+						"=== Request Verification ===",
+						"Token: eyJhbGciOiJIUzI1NiIs...",
+						"User Role: admin",
+						"Full Headers: [object Object]",
+						"=== Response Analysis ===",
+						"Status: 200",
+						"Response headers: [object Object]",
+						"Response body: [object Object]"
+					]
+				}
+			},
+			"testPassFailCounts": {
+				"pass": 1,
+				"fail": 0
+			},
+			"times": [89],
+			"allTests": [
+				{
+					"Response Analysis": {
+						"status": "pass",
+						"logs": [
+							"=== Request Verification ===",
+							"Token: eyJhbGciOiJIUzI1NiIs...",
+							"User Role: admin",
+							"Full Headers: [object Object]",
+							"=== Response Analysis ===",
+							"Status: 200",
+							"Response headers: [object Object]",
+							"Response body: [object Object]"
+						]
+					}
+				}
+			]
+		},
+		{
+			"id": "c545e3a4-feb0-4feb-8650-a56997de78ff",
+			"name": "Create Collaborator (Admin Only)",
+			"url": "http://localhost:3000/api/users/collaborator",
+			"time": 433,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Response Analysis": {
+					"status": "pass",
+					"logs": [
+						"=== Response Analysis ===",
+						"Status: 201",
+						"Response headers: [object Object]",
+						"Response body: [object Object]"
+					]
+				}
+			},
+			"testPassFailCounts": {
+				"pass": 1,
+				"fail": 0
+			},
+			"times": [433],
+			"allTests": [
+				{
+					"Response Analysis": {
+						"status": "pass",
+						"logs": [
+							"=== Response Analysis ===",
+							"Status: 201",
+							"Response headers: [object Object]",
+							"Response body: [object Object]"
+						]
+					}
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 1714,
+	"collection": {
+		"requests": [
+			{
+				"id": "d594cfba-d0ba-48be-a576-a336c314c1e3",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"admin2@hexatech.com\",\n    \"password\": \"admin\"\n}"
+				}
+			},
+			{
+				"id": "2fa7e3d1-c409-4dad-9167-19c14f5845e4",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				]
+			},
+			{
+				"id": "24dcf3fe-b781-44fe-ad40-b079635c0ddb",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				]
+			},
+			{
+				"id": "c545e3a4-feb0-4feb-8650-a56997de78ff",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"collaborator@hexatech.com\"\n}"
+				}
+			}
+		]
+	}
+}

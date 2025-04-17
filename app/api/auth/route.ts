@@ -3,8 +3,27 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  }
 );
+
+// Helper function to add CORS headers
+const addCorsHeaders = (response: NextResponse) => {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
+};
+
+export async function OPTIONS() {
+  return addCorsHeaders(new NextResponse(null, { status: 204 }));
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,13 +31,14 @@ export async function POST(request: NextRequest) {
     const { username, password } = body;
 
     if (!username || !password) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Username and password are required' },
         { status: 400 }
-      );
+      ));
     }
 
     // Sign in with Supabase using email (username)
+    console.log('Attempting to sign in with:', { email: username });
     const { data, error } = await supabase.auth.signInWithPassword({
       email: username,
       password,
@@ -26,17 +46,47 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Sign in error:', error.message);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 401 }
+      console.error('Error details:', error);
+      
+      // Check for rate limit error
+      if (error.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Too many login attempts. Please wait a few minutes before trying again." 
+          }),
+          { 
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'POST, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            }
+          }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { 
+          status: 401,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+          }
+        }
       );
     }
 
+    console.log('Sign in successful:', { userId: data.user?.id });
+
     if (!data?.user) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'No user data returned' },
         { status: 401 }
-      );
+      ));
     }
 
     // Get user role
@@ -48,33 +98,34 @@ export async function POST(request: NextRequest) {
 
     if (roleError) {
       console.error('Role error:', roleError.message);
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Failed to get user role' },
         { status: 500 }
-      );
+      ));
     }
 
     if (!userData) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'User role not found' },
         { status: 404 }
-      );
+      ));
     }
 
-    return NextResponse.json({
+    // Return the session and user data
+    return addCorsHeaders(NextResponse.json({
       user: {
         id: data.user.id,
         email: data.user.email,
         role: userData.role,
       },
       session: data.session,
-    });
+    }));
   } catch (error) {
     console.error('Auth error:', error);
-    return NextResponse.json(
+    return addCorsHeaders(NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
-    );
+    ));
   }
 }
 
@@ -83,19 +134,19 @@ export async function GET(request: NextRequest) {
     const token = request.headers.get('Authorization')?.split('Bearer ')[1];
     
     if (!token) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'No token provided' },
         { status: 401 }
-      );
+      ));
     }
 
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
 
-    if (error || !user) {
-      return NextResponse.json(
+    if (userError || !user) {
+      return addCorsHeaders(NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
-      );
+      ));
     }
 
     // Get user role
@@ -107,24 +158,24 @@ export async function GET(request: NextRequest) {
 
     if (roleError) {
       console.error('Role error:', roleError.message);
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Failed to get user role' },
         { status: 500 }
-      );
+      ));
     }
 
-    return NextResponse.json({
+    return addCorsHeaders(NextResponse.json({
       user: {
         id: user.id,
         email: user.email,
         role: userData?.role,
       },
-    });
+    }));
   } catch (error) {
     console.error('Auth error:', error);
-    return NextResponse.json(
+    return addCorsHeaders(NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
-    );
+    ));
   }
 } 

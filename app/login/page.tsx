@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { supabase, checkSession } from "@/lib/supabase";
+import { checkSession } from "@/lib/supabase";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -41,7 +41,7 @@ const LoginPage = () => {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const email = formData.get("username") as string;
+      const email = formData.get("email") as string;
       const password = formData.get("password") as string;
 
       console.log('Attempting login with:', { email });
@@ -50,54 +50,39 @@ const LoginPage = () => {
         throw new Error('Please enter both email and password');
       }
 
-      // Sign in with Supabase
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password.trim(),
+      // Use the API endpoint for authentication
+      console.log('Sending request to /api/auth');
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: email.trim(), // API expects username field
+          password: password.trim(),
+        }),
       });
 
-      console.log('Sign in response:', { data, error: signInError });
+      console.log('Auth response status:', response.status);
+      const data = await response.json();
+      console.log('Auth response data:', data);
 
-      if (signInError) {
-        throw new Error(signInError.message);
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to login');
       }
 
-      if (!data?.user) {
-        throw new Error('No user data returned');
+      if (!data.session) {
+        throw new Error('No session data returned');
       }
 
-      // Get user role
-      const { data: userData, error: roleError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
-
-      console.log('User role data:', { userData, error: roleError });
-
-      if (roleError || !userData) {
-        throw new Error('Failed to get user role');
-      }
-
-      // Update user metadata with role
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: { role: userData.role }
-      });
-
-      if (updateError) {
-        console.error('Error updating user metadata:', updateError);
-      }
-
-      // Force a session refresh
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Session after login:', session);
-      
-      if (!session) {
-        throw new Error('Failed to get session after login');
-      }
+      // Store the session in localStorage
+      localStorage.setItem('supabase.auth.token', JSON.stringify({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      }));
 
       // Redirect based on role
-      if (userData.role === 'admin') {
+      if (data.user.role === 'admin') {
         console.log('Redirecting admin to dashboard/admin');
         router.push("/dashboard/admin");
       } else {
@@ -146,8 +131,8 @@ const LoginPage = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-5">
                 <Input
-                  id="username"
-                  name="username"
+                  id="email"
+                  name="email"
                   type="email"
                   label="Email"
                   placeholder="Enter your email"
