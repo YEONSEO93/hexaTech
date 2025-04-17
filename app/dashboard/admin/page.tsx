@@ -2,50 +2,43 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { DashboardLayout } from "@/components/layouts/DashboardLayout";
+import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 
-export default function AdminDashboard() {
+export default function AdminPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error || !session) {
-          console.log('No session found, redirecting to login');
-          router.push('/login');
-          return;
+        const response = await fetch('/api/auth/admin');
+        if (!response.ok) {
+          throw new Error('Access denied');
         }
-
-        const role = session.user.user_metadata.role;
-        if (role !== 'admin') {
-          console.log('User is not admin, redirecting to dashboard');
-          router.push('/dashboard');
-          return;
-        }
-
-        setUserEmail(session.user.email || null);
-        setLoading(false);
+        setIsLoading(false);
       } catch (error) {
-        console.error('Error checking admin access:', error);
-        router.push('/login');
+        console.error('Admin access check failed:', error);
+        router.push('/dashboard');
       }
     };
 
     checkAdminAccess();
   }, [router]);
 
-  if (loading) {
-    return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
-    <div>
-      <h1>Admin Dashboard</h1>
-      <h1>Hello {userEmail}</h1>
-    </div>
+    <DashboardLayout>
+      <AdminDashboard />
+    </DashboardLayout>
   );
 } 

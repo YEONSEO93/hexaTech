@@ -1,7 +1,7 @@
 {
     "info": {
       "name": "Event Dashboard API",
-      "description": "Authentication endpoints for Admin and Collaborator roles in the Event Management system.",
+      "description": "API endpoints for the Event Dashboard Management system with Supabase authentication.",
       "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
@@ -16,36 +16,14 @@
                 "script": {
                   "type": "text/javascript",
                   "exec": [
-                    "// Enhanced logging for login response",
-                    "pm.test(\"Save and verify token\", function () {",
+                    "pm.test(\"Login successful\", function () {",
                     "    var jsonData = pm.response.json();",
-                    "    console.log(\"=== Login Response Analysis ===\");",
-                    "    console.log(\"Status:\", pm.response.status);",
-                    "    console.log(\"Response headers:\", pm.response.headers.all());",
-                    "    console.log(\"Full response:\", jsonData);",
+                    "    console.log(\"Login Response:\", jsonData);",
                     "    ",
-                    "    if (jsonData.session && jsonData.session.access_token) {",
-                    "        // Save token and user data",
-                    "        var token = jsonData.session.access_token;",
-                    "        pm.environment.set(\"token\", token);",
-                    "        ",
-                    "        if (jsonData.user) {",
-                    "            pm.environment.set(\"userId\", jsonData.user.id);",
-                    "            pm.environment.set(\"userRole\", jsonData.user.role);",
-                    "            pm.environment.set(\"userEmail\", jsonData.user.email);",
-                    "        }",
-                    "        ",
-                    "        // Verification logs",
-                    "        console.log(\"=== Token Verification ===\");",
-                    "        console.log(\"Token saved:\", token.substring(0, 20) + '...');",
-                    "        console.log(\"Token length:\", token.length);",
-                    "        console.log(\"User ID:\", pm.environment.get(\"userId\"));",
-                    "        console.log(\"User Role:\", pm.environment.get(\"userRole\"));",
-                    "        console.log(\"User Email:\", pm.environment.get(\"userEmail\"));",
-                    "    } else {",
-                    "        console.error(\"=== Token Error ===\");",
-                    "        console.error(\"No token found in response\");",
-                    "        console.error(\"Response structure:\", Object.keys(jsonData));",
+                    "    if (jsonData.user) {",
+                    "        pm.environment.set(\"userId\", jsonData.user.id);",
+                    "        pm.environment.set(\"userEmail\", jsonData.user.email);",
+                    "        pm.environment.set(\"userRole\", jsonData.user.role);",
                     "    }",
                     "});"
                   ]
@@ -61,15 +39,33 @@
                 }
               ],
               "url": {
-                "raw": "{{baseUrl}}/api/auth",
+                "raw": "{{baseUrl}}/login",
                 "host": ["{{baseUrl}}"],
-                "path": ["api", "auth"]
+                "path": ["login"]
               },
               "body": {
                 "mode": "raw",
-                "raw": "{\n    \"username\": \"admin2@hexatech.com\",\n    \"password\": \"admin\"\n}"
+                "raw": "{\n    \"email\": \"admin@hexatech.com\",\n    \"password\": \"admin\"\n}"
               },
-              "description": "Authenticates user (admin/collaborator) and returns session token"
+              "description": "Authenticates user and returns session information"
+            }
+          },
+          {
+            "name": "Admin Dashboard",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{baseUrl}}/api/auth/admin",
+                "host": ["{{baseUrl}}"],
+                "path": ["api", "auth", "admin"]
+              },
+              "description": "Gets admin dashboard data"
             }
           },
           {

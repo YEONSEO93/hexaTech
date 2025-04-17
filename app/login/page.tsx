@@ -17,10 +17,10 @@ const LoginPage = () => {
     // Check for existing session on mount
     const checkExistingSession = async () => {
       console.log('Checking existing session...');
-      const { session } = await checkSession();
-      if (session) {
-        console.log('Found existing session:', session);
-        const role = session.user.user_metadata.role || 'user';
+      const { data } = await checkSession();
+      if (data?.session) {
+        console.log('Found existing session:', data.session);
+        const role = data.user?.role || 'user';
         console.log('User role from session:', role);
         if (role === 'admin') {
           console.log('Redirecting admin to dashboard/admin');
@@ -57,12 +57,12 @@ const LoginPage = () => {
         throw new Error(typeof signInError === 'string' ? signInError : 'Failed to sign in');
       }
 
-      if (!data?.session) {
-        throw new Error('No session data returned');
+      if (!data?.user) {
+        throw new Error('No user data returned');
       }
 
       // Redirect based on role
-      const role = data.user?.user_metadata?.role || 'user';
+      const role = data.user.role;
       console.log('Login successful, user role:', role);
       
       if (role === 'admin') {

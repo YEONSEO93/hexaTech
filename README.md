@@ -1,32 +1,46 @@
-# Event Dashboard by hexaTech
+# Event Dashboard Management
 
-## 🛠 Tech Stack
+A Next.js application for managing events with role-based access control.
 
-| Layer        | Tech/Tool              |
-|--------------|------------------------|
-| **Frontend** | Tailwind CSS, ShadCN UI |
-| **Full-Stack** | Next.js 15 (App Router) |
-| **Auth**     | AWS Cognito (Session-based) |
-| **Database** | Prisma ORM + MySQL     |
-| **API Testing** | Postman              |
-| **Deployment** | Vercel               |
-| **Version Control** | GitHub           |
+## Tech Stack
+
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **Authentication**: Supabase Auth
+- **Database**: Supabase PostgreSQL
+- **Styling**: Tailwind CSS
 
 
+## Authentication Flow
 
-## Project Structure
+1. **Login**
+   - Users access `/login` page
+   - Submit credentials (email/password)
+   - Server validates and creates session
+   - Redirects to appropriate dashboard based on role
 
+2. **Session Management**
+   - Session stored in Supabase
+   - Protected routes check for valid session
+   - Role-based access control for dashboards
 
+3. **Admin Dashboard**
+   - Accessible at `/dashboard/admin`
+   - Displays user information
+   - Role-specific features and controls
 
 ## Getting Started
 
-### 1. Clone the repo
-git clone https://github.com/YEONSEO93/hexaTech.git
-
-cd hexaTech
-
-### 2. Install dependencies
-npm install
-
-### 3. Start local dev server
-npm run dev
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```

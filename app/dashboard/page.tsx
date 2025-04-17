@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -25,7 +25,7 @@ export default function DashboardPage() {
           .single();
 
         if (userData?.role === 'admin') {
-          router.push('/admin/dashboard');
+          router.push('/dashboard/admin');
         } else {
           router.push('/users');
         }
