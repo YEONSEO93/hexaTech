@@ -1,4 +1,11 @@
-import { CSSProperties, ReactNode, useState, useEffect, Fragment } from "react";
+import {
+  CSSProperties,
+  ReactNode,
+  useState,
+  useEffect,
+  Fragment,
+  ChangeEvent,
+} from "react";
 import { FilterMatchMode } from "primereact/api";
 
 import {
@@ -12,6 +19,9 @@ import { Calendar } from "primereact/calendar";
 import { InputNumber } from "primereact/inputnumber";
 import { MultiSelect } from "primereact/multiselect";
 import { Dropdown } from "primereact/dropdown";
+import { InputText } from "primereact/inputtext";
+import { IconField } from "primereact/iconfield";
+import { InputIcon } from "primereact/inputicon";
 
 type FilterType = "text" | "date" | "number" | "dropdown" | "boolean";
 
@@ -49,13 +59,19 @@ const generateFilters = <T,>(columns: BaseColumnProps<T>[]): FiltersObject => {
     dropdown: FilterMatchMode.IN,
   };
 
-  return columns.reduce<FiltersObject>((acc, col) => {
+  const globalFilter = {
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  };
+
+  const columnFilters = columns.reduce<FiltersObject>((acc, col) => {
     if (col.filter) {
       const matchMode = defaultMatchModes[col.filterType || "text"];
       acc[col.field] = { value: null, matchMode };
     }
     return acc;
   }, {});
+
+  return { ...globalFilter, ...columnFilters };
 };
 
 const getDataType = (filterType: FilterType): DataType | undefined => {
@@ -151,13 +167,18 @@ const renderBodyElement = <T,>(
   field: Extract<keyof T, string>,
   data: T
 ) => {
+  const value = data[field];
+
   switch (filterType) {
     case "date":
-      return renderDateElement(data[field] as Date);
+      return value instanceof Date ? renderDateElement(value) : undefined;
     case "boolean":
-      return renderBooleanElement(data[field] as boolean);
+      return typeof value === "boolean"
+        ? renderBooleanElement(value)
+        : undefined;
     default:
-      return data[field];
+      if (typeof value === "string" || typeof value === "number")
+        return <span>{value}</span>;
   }
 };
 
@@ -184,9 +205,15 @@ export default function BaseTable<T extends object>(props: BaseTableProps<T>) {
   const { value, columns, ...rest } = props;
   const [filters, setFilters] = useState<FiltersObject>({});
   const [selected, setSelected] = useState<SelectedRow>([]);
+  const [globalFilterValue, setGlobalFilterValue] = useState("");
+
+  const initFilters = () => {
+    setFilters(generateFilters(columns));
+    setGlobalFilterValue("");
+  };
 
   useEffect(() => {
-    setFilters(generateFilters(columns));
+    initFilters();
   }, []);
 
   const onRowEditComplete = (e) => {};
@@ -195,9 +222,56 @@ export default function BaseTable<T extends object>(props: BaseTableProps<T>) {
 
   const onDelete = (e) => {};
 
+  const clearFilter = () => {
+    initFilters();
+  };
+
+  const onGlobalFilterChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    let _filters = { ...filters };
+
+    const globalFilter = _filters["global"];
+
+    if ("value" in globalFilter) {
+      globalFilter.value = value;
+    }
+
+    setFilters(_filters);
+    setGlobalFilterValue(value);
+  };
+
+  const renderHeader = () => {
+    return (
+      <div className="flex justify-start gap-4">
+        <Button
+          type="button"
+          icon="pi pi-filter-slash"
+          label="Clear"
+          outlined
+          onClick={clearFilter}
+        />
+        <IconField iconPosition="left">
+          <InputIcon className="pi pi-search" />
+          <InputText
+            value={globalFilterValue}
+            onChange={onGlobalFilterChange}
+            placeholder="Keyword Search"
+          />
+        </IconField>
+      </div>
+    );
+  };
+
+  const header = renderHeader();
+  const globalFilterFields = Object.keys(filters).filter(
+    (key) => key !== "global"
+  );
+
   return (
     <DataTable
       value={hasDateFields(columns) ? convertDateData(value) : value}
+      header={header}
+      globalFilterFields={globalFilterFields}
       size="large"
       paginator
       rows={10}
