@@ -4,15 +4,26 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
-        const response = await fetch('/api/auth/admin');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('No session found');
+        }
+
+        const response = await fetch('/api/roles/admin', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
         if (!response.ok) {
           throw new Error('Access denied');
         }
@@ -24,7 +35,7 @@ export default function AdminPage() {
     };
 
     checkAdminAccess();
-  }, [router]);
+  }, [router, supabase]);
 
   if (isLoading) {
     return (

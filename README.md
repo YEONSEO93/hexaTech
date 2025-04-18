@@ -1,13 +1,16 @@
-# Event Dashboard Management
+# Event Dashboard Management by hexaTech
 
-A Next.js application for managing events with role-based access control.
+A Next.js full-stack application for managing events with role-based access control.
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15, React, TypeScript
+- **Backend**: Next.js API Routes, Supabase
 - **Authentication**: Supabase Auth
 - **Database**: Supabase PostgreSQL
 - **Styling**: Tailwind CSS
+- **Form Handling**: React Hook Form with Zod validation
+- **UI Components**: Radix UI, PrimeReact
 
 
 ## Authentication Flow
@@ -22,11 +25,12 @@ A Next.js application for managing events with role-based access control.
    - Session stored in Supabase
    - Protected routes check for valid session
    - Role-based access control for dashboards
+   - Automatic session refresh and persistence
 
-3. **Admin Dashboard**
-   - Accessible at `/dashboard/admin`
-   - Displays user information
-   - Role-specific features and controls
+3. **Role-Based Access**
+   - Admin Dashboard (`/dashboard/admin`)
+   - Collaborator Dashboard (`/dashboard`)
+   - Middleware enforces role-based routing
 
 ## Getting Started
 
@@ -39,6 +43,7 @@ A Next.js application for managing events with role-based access control.
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   NEXT_PUBLIC_SERVICE_ROLE_KEY=your_supabase_service_role_key
    ```
 4. Run the development server:
    ```bash

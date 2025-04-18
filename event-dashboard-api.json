@@ -61,9 +61,9 @@
                 }
               ],
               "url": {
-                "raw": "{{baseUrl}}/api/auth/admin",
+                "raw": "{{baseUrl}}/api/roles/admin",
                 "host": ["{{baseUrl}}"],
-                "path": ["api", "auth", "admin"]
+                "path": ["api", "roles", "admin"]
               },
               "description": "Gets admin dashboard data"
             }
