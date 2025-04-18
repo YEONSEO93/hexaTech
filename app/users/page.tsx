@@ -7,32 +7,12 @@ import { PageHeader } from "@/components/PageHeader";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { ProductService } from "./data";
 import MainLayout from "@/components/layouts/MainLayout";
 import BaseTable from "@/components/ui/base-table/base-table";
 
-interface Product {
-  id: string;
-  code: string;
-  name: string;
-  description: string;
-  image: string;
-  price: number;
-  category: string;
-  quantity: number;
-  inventoryStatus: string;
-  rating: number;
-}
-
 export default function Users() {
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
 
-  useEffect(() => {
-    ProductService.getProductsMini().then((d) => setProducts(d));
-  }, []);
   return (
     <>
       <Sidebar />
@@ -51,31 +31,69 @@ export default function Users() {
         </div>
         <div className="p-8">
           <BaseTable
-            value={products}
-            columns={[
+            value={[
               {
-                field: "code",
-                header: "Code",
-                sortable: true,
-                filter: true,
+                id: 1,
+                name: "Admin User",
+                role: "Admin",
+                createdAt: "2024-12-09",
+                updatedAt: "2024-12-10",
+                company: "BEDA",
+                verified: true,
+                number: 200,
               },
+              {
+                id: 2,
+                name: "Collab User",
+                role: "Collaborator",
+                createdAt: "2024-10-09",
+                updatedAt: "2024-10-10",
+                company: "Suncorp",
+                verified: false,
+                number: 400,
+              },
+            ]}
+            columns={[
               {
                 field: "name",
                 header: "Name",
-                sortable: true,
                 filter: true,
               },
               {
-                field: "category",
-                header: "Category",
-                sortable: true,
+                field: "role",
+                header: "Role",
                 filter: true,
+                filterType: "dropdown",
               },
               {
-                field: "quantity",
-                header: "Quantity",
-                sortable: true,
+                field: "company",
+                header: "Company",
                 filter: true,
+                filterType: "dropdown",
+              },
+              {
+                field: "createdAt",
+                header: "Created At",
+                filter: true,
+                filterType: "date",
+              },
+              {
+                field: "updatedAt",
+                header: "Updated At",
+                filter: true,
+                filterType: "date",
+              },
+              {
+                field: "verified",
+                header: "Verified",
+                filter: true,
+                filterType: "boolean",
+              },
+              {
+                field: "number",
+                header: "Test Number Filter",
+                filter: true,
+                filterType: "number",
               },
             ]}
           ></BaseTable>
