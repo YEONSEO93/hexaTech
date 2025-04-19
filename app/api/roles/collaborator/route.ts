@@ -29,7 +29,6 @@ function generateTempPassword(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== Create Collaborator Request ===');
     const body = await request.json();
     const { email } = body;
     
@@ -118,7 +117,8 @@ export async function POST(request: NextRequest) {
       user: {
         id: authData.user.id,
         email: authData.user.email,
-        role: 'collaborator'
+        role: 'collaborator',
+        must_change_password: true
       }
     });
   } catch (error) {
