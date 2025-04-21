@@ -13,26 +13,6 @@ const LoginPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Check for existing session on mount
-    const checkExistingSession = async () => {
-      console.log('Checking existing session...');
-      const { data } = await checkSession();
-      if (data?.session) {
-        console.log('Found existing session:', data.session);
-        const role = data.user?.role || 'user';
-        console.log('User role from session:', role);
-        if (role === 'admin') {
-          console.log('Redirecting admin to dashboard/admin');
-          router.push("/dashboard/admin");
-        } else {
-          console.log('Redirecting user to dashboard');
-          router.push("/dashboard");
-        }
-      }
-    };
-    checkExistingSession();
-  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
