@@ -1,0 +1,261 @@
+{
+    "info": {
+      "name": "Event Dashboard API",
+      "description": "API endpoints for the Event Dashboard Management system with Supabase authentication.",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Authentication",
+        "item": [
+          {
+            "name": "Login",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test(\"Login successful\", function () {",
+                    "    var jsonData = pm.response.json();",
+                    "    console.log(\"Login Response:\", jsonData);",
+                    "    ",
+                    "    if (jsonData.user) {",
+                    "        pm.environment.set(\"userId\", jsonData.user.id);",
+                    "        pm.environment.set(\"userEmail\", jsonData.user.email);",
+                    "        pm.environment.set(\"userRole\", jsonData.user.role);",
+                    "    }",
+                    "});"
+                  ]
+                }
+              }
+            ],
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "{{baseUrl}}/login",
+                "host": ["{{baseUrl}}"],
+                "path": ["login"]
+              },
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"email\": \"admin@hexatech.com\",\n    \"password\": \"admin\"\n}"
+              },
+              "description": "Authenticates user and returns session information"
+            }
+          },
+          {
+            "name": "Admin Dashboard",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{baseUrl}}/api/roles/admin",
+                "host": ["{{baseUrl}}"],
+                "path": ["api", "roles", "admin"]
+              },
+              "description": "Gets admin dashboard data"
+            }
+          },
+          {
+            "name": "Change Password",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{token}}"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"currentPassword\": \"TEMP_PASSWORD\",\n    \"newPassword\": \"NEW_SECURE_PASSWORD\"\n}"
+              },
+              "url": {
+                "raw": "{{baseUrl}}/api/auth/change-password",
+                "host": ["{{baseUrl}}"],
+                "path": ["api", "auth", "change-password"]
+              }
+            }
+          },
+          {
+            "name": "Get Current User",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{baseUrl}}/api/auth",
+                "host": ["{{baseUrl}}"],
+                "path": ["api", "auth"]
+              },
+              "description": "Gets current user information from token"
+            }
+          }
+        ]
+      },
+      {
+        "name": "User Management",
+        "item": [
+          {
+            "name": "List Users (Admin Only)",
+            "event": [
+              {
+                "listen": "prerequest",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "// Pre-request verification",
+                    "console.log(\"=== Request Verification ===\");",
+                    "console.log(\"Token:\", pm.environment.get(\"token\").substring(0, 20) + '...');",
+                    "console.log(\"User Role:\", pm.environment.get(\"userRole\"));",
+                    "console.log(\"Full Headers:\", pm.request.headers.all());"
+                  ]
+                }
+              },
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "// Response verification",
+                    "pm.test(\"Response Analysis\", function () {",
+                    "    console.log(\"=== Response Analysis ===\");",
+                    "    console.log(\"Status:\", pm.response.status);",
+                    "    console.log(\"Response headers:\", pm.response.headers.all());",
+                    "    ",
+                    "    try {",
+                    "        var jsonData = pm.response.json();",
+                    "        console.log(\"Response body:\", jsonData);",
+                    "    } catch (e) {",
+                    "        console.error(\"Failed to parse response:\", e);",
+                    "        console.log(\"Raw response:\", pm.response.text());",
+                    "    }",
+                    "});"
+                  ]
+                }
+              }
+            ],
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{token}}"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "{{baseUrl}}/api/users",
+                "host": ["{{baseUrl}}"],
+                "path": ["api", "users"]
+              },
+              "description": "Returns list of all users (requires admin token)"
+            }
+          },
+          {
+            "name": "Create Collaborator (Admin Only)",
+            "event": [
+              {
+                "listen": "prerequest",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "// Pre-request verification",
+                    "console.log(\"=== Request Verification ===\");",
+                    "console.log(\"Token:\", pm.environment.get(\"token\").substring(0, 20) + '...');",
+                    "console.log(\"User Role:\", pm.environment.get(\"userRole\"));",
+                    "console.log(\"Full Headers:\", pm.request.headers.all());"
+                  ]
+                }
+              },
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "// Response verification",
+                    "pm.test(\"Response Analysis\", function () {",
+                    "    console.log(\"=== Response Analysis ===\");",
+                    "    console.log(\"Status:\", pm.response.status);",
+                    "    console.log(\"Response headers:\", pm.response.headers.all());",
+                    "    ",
+                    "    try {",
+                    "        var jsonData = pm.response.json();",
+                    "        console.log(\"Response body:\", jsonData);",
+                    "        ",
+                    "        // Save collaborator data if successful",
+                    "        if (pm.response.status === 201 && jsonData.user) {",
+                    "            pm.environment.set(\"collaboratorId\", jsonData.user.id);",
+                    "            pm.environment.set(\"collaboratorEmail\", jsonData.user.email);",
+                    "            console.log(\"Saved collaborator data:\", {",
+                    "                id: jsonData.user.id,",
+                    "                email: jsonData.user.email",
+                    "            });",
+                    "        }",
+                    "    } catch (e) {",
+                    "        console.error(\"Failed to parse response:\", e);",
+                    "        console.log(\"Raw response:\", pm.response.text());",
+                    "    }",
+                    "});"
+                  ]
+                }
+              }
+            ],
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{token}}"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "{{baseUrl}}/api/users/collaborator",
+                "host": ["{{baseUrl}}"],
+                "path": ["api", "users", "collaborator"]
+              },
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"email\": \"collaborator2@hexatech.com\"\n}"
+              },
+              "description": "Creates a new collaborator account"
+            }
+          }
+        ]
+      }
+    ],
+    "variable": [
+      {
+        "key": "baseUrl",
+        "value": "http://localhost:3000",
+        "type": "string"
+      }
+    ]
+  }

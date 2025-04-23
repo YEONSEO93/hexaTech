@@ -5,14 +5,59 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { checkSession, signInWithEmail } from "@/lib/supabase/auth";
 
 const LoginPage = () => {
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: Add actual login logic here
-    router.push("/users");
+    setError(null);
+    setLoading(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+
+      console.log('Attempting login with:', { email });
+
+      if (!email?.trim() || !password?.trim()) {
+        throw new Error('Please enter both email and password');
+      }
+
+      // Use the auth utility for sign in
+      const { data, error: signInError } = await signInWithEmail(email.trim(), password.trim());
+      
+      if (signInError) {
+        throw new Error(typeof signInError === 'string' ? signInError : 'Failed to sign in');
+      }
+
+      if (!data?.user) {
+        throw new Error('No user data returned');
+      }
+
+      // Redirect based on role
+      const role = data.user.role;
+      console.log('Login successful, user role:', role);
+      
+      if (role === 'admin') {
+        console.log('Redirecting admin to dashboard/admin');
+        router.push("/dashboard/admin");
+      } else {
+        console.log('Redirecting user to dashboard');
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to login');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -21,7 +66,7 @@ const LoginPage = () => {
         <img
           src="/background.jpg"
           alt="Image"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 object-cover w-full h-full"
         />
       </div>
       <div className="flex flex-col p-6 md:p-10">
@@ -36,22 +81,29 @@ const LoginPage = () => {
             />
           </Link>
         </div>
-        <div className="flex flex-1 items-start justify-center">
+        <div className="flex items-start justify-center flex-1">
           <div className="w-full max-w-md space-y-8">
             <div>
               <h1 className="text-3xl font-bold">Log In</h1>
             </div>
+            {error && (
+              <div className="p-4 rounded-md bg-red-50">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-5">
                 <Input
-                  id="username"
-                  type="text"
-                  label="Username"
-                  placeholder="Enter your username"
+                  id="email"
+                  name="email"
+                  type="email"
+                  label="Email"
+                  placeholder="Enter your email"
                   required
                 />
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   label="Password"
                   placeholder="Enter your password"
@@ -76,8 +128,8 @@ const LoginPage = () => {
                     Forgot Password?
                   </Link>
                 </div>
-                <Button type="submit" fullWidth>
-                  Log In
+                <Button type="submit" fullWidth disabled={loading}>
+                  {loading ? "Logging in..." : "Log In"}
                 </Button>
               </div>
             </form>
