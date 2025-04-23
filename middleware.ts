@@ -50,14 +50,11 @@ export async function middleware(request: NextRequest) {
 
     const role = userData.role;
 
-    // Handle role-based routing
-    if (request.nextUrl.pathname === '/') {
-      // Redirect root to role-specific dashboard
-      return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url));
-    }
+    const dashboardRedirects = ['/', '/login', '/dashboard']
 
-    if (request.nextUrl.pathname === '/login') {
-      // Redirect authenticated users to their dashboard
+    // Handle role-based routing
+    if (dashboardRedirects.includes(request.nextUrl.pathname)) {
+      // Redirect root to role-specific dashboard
       return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url));
     }
 
@@ -74,6 +71,7 @@ export async function middleware(request: NextRequest) {
     return res;
   } catch (error) {
     console.error('Middleware error:', error);
-    return NextResponse.redirect(new URL('/login', request.url));
+    // return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.json({ error: 'Sorry, something went wrong' }, { status: 500 });
   }
 } 
