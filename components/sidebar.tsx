@@ -3,6 +3,7 @@ import Image from "next/image";
 import { IconUser } from "./icon/IconUser";
 import { IconSetting } from "./icon/IconSetting";
 import { IconNotification } from "./icon/IconNotification";
+import LogoutButton from "@/components/ui/logout-button";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard/admin" },
@@ -50,6 +51,7 @@ export function Sidebar() {
             {item.name}
           </Link>
         ))}
+        <LogoutButton />
       </div>
     </div>
   );
