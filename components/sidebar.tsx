@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+
 import { IconUser } from "./icon/IconUser";
 import { IconSetting } from "./icon/IconSetting";
 import { IconNotification } from "./icon/IconNotification";
@@ -11,6 +15,8 @@ const navigation = [
 ];
 
 export function Sidebar() {
+  const pathname = usePathname();
+
   return (
     <div className="fixed left-0 top-0 flex h-screen w-[260px] flex-col border-r border-gray-200 bg-white">
       <div className="border-b border-gray-200 p-6 mb-8">
@@ -42,7 +48,7 @@ export function Sidebar() {
             key={item.name}
             href={item.href}
             className={`rounded-md px-6 py-3 text-[15px] ${
-              item.name === "User Management"
+              pathname.startsWith(item.href)
                 ? "bg-gray-100 font-medium"
                 : "text-gray-600 hover:bg-gray-50"
             }`}
