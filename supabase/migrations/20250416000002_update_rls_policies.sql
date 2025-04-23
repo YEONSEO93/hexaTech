@@ -29,20 +29,6 @@ CREATE POLICY "Users can update their own must_change_password"
   ON users FOR UPDATE
   USING (
     auth.uid() = id
-  )
-  WITH CHECK (
-    -- Only allow updating must_change_password field
-    must_change_password IS NOT NULL AND
-    -- Ensure other fields aren't being modified
-    (
-      SELECT COUNT(*)
-      FROM jsonb_each(to_jsonb(NEW) - 'must_change_password')
-      WHERE jsonb_each.value IS DISTINCT FROM (
-        SELECT jsonb_each.value
-        FROM jsonb_each(to_jsonb(OLD))
-        WHERE jsonb_each.key = jsonb_each.key
-      )
-    ) = 0
   );
 
 -- 4. Collaborators can view all users (useful for team features)
