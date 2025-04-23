@@ -10,33 +10,36 @@ export default function DashboardPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
         if (error || !session) {
-          router.push('/login');
+          router.push("/login");
           return;
         }
 
         // Check user role
         const { data: userData } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', session.user.id)
+          .from("users")
+          .select("role")
+          .eq("id", session.user.id)
           .single();
 
-        if (userData?.role === 'admin') {
-          router.push('/dashboard/admin');
+        if (userData?.role === "admin") {
+          router.push("/dashboard/admin");
         } else {
-          router.push('/users');
+          router.push("/users");
         }
       } catch (error) {
-        console.error('Error:', error);
-        router.push('/login');
+        console.error("Error:", error);
+        router.push("/login");
       }
     };
 
     checkAuth();
   }, [router]);
 
-  return <h1>Loading...</h1>;
-} 
+  return <h1></h1>;
+}
