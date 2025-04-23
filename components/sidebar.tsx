@@ -7,11 +7,12 @@ import { usePathname } from "next/navigation";
 import { IconUser } from "./icon/IconUser";
 import { IconSetting } from "./icon/IconSetting";
 import { IconNotification } from "./icon/IconNotification";
+import LogoutButton from "@/components/ui/logout-button";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard" },
+  { name: "Dashboard", href: "/dashboard/admin" },
   { name: "Event Listing", href: "/events" },
-  { name: "User Management", href: "/users" },
+  { name: "User Management", href: "/dashboard/admin/collaborators" },
 ];
 
 export function Sidebar() {
@@ -56,6 +57,7 @@ export function Sidebar() {
             {item.name}
           </Link>
         ))}
+        <LogoutButton />
       </div>
     </div>
   );
