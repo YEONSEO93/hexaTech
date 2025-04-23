@@ -1,8 +1,11 @@
+import { DashboardLayout } from "@/components/layouts/DashboardLayout";
+
 export default function Events() {
-    return (
-      <div>
+  return (
+    <div>
+      <DashboardLayout>
         <h1>Events Page</h1>
-      </div>
-    );
-  }
-  
+      </DashboardLayout>
+    </div>
+  );
+}
