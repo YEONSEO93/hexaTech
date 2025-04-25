@@ -98,7 +98,7 @@ export default function CreateUserPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="collaborator">Collaborator</SelectItem>
-                    <SelectItem value="admin">Viewer (Admin)</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -1,7 +1,7 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/supabase';
 
-export type UserRole = 'admin' | 'collaborator';
+export type UserRole = 'admin' | 'collaborator' | 'viewer';
 
 export interface AuthResponse {
   success: boolean;

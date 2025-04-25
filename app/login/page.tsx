@@ -45,7 +45,7 @@ const LoginPage = () => {
       console.log(`Login successful. Role from signInWithEmail: ${userRole}`);
 
       let redirectPath = '/login';
-      if (userRole === 'admin') {
+      if (userRole === 'admin' || userRole === 'viewer') {
         redirectPath = '/dashboard';
       } else if (userRole === 'collaborator') {
         redirectPath = '/events';

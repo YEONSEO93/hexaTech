@@ -13,9 +13,9 @@ import { IconNotification } from "./icon/IconNotification";
 import LogoutButton from "@/components/ui/logout-button";
 
 const defaultNavigation = [
-  { name: "Dashboard", href: "/dashboard", roles: ['admin'] },
+  { name: "Dashboard", href: "/dashboard", roles: ['admin', 'viewer'] },
   { name: "Event Listing", href: "/events", roles: ['admin', 'collaborator'] },
-  { name: "User Management", href: "/users", roles: ['admin'] },
+  { name: "User Management", href: "/users", roles: ['admin', 'viewer'] },
 ];
 
 export function Sidebar() {

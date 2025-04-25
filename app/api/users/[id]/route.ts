@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
 
     const authResult = await authorizeRequest(request, { 
-      allowedRoles: ['admin'], 
+      allowedRoles: ['admin', 'viewer'], 
       allowSelf: true, 
       targetUserId: userIdToFetch,
       supabaseClient: supabase 

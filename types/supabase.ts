@@ -208,7 +208,7 @@ export type Database = {
         | "BUSINESS_EVENT"
         | "CONCERT"
       event_status: "PENDING" | "ANNOUNCED"
-      role: "ADMIN" | "USER"
+      role: "admin" | "collaborator" | "viewer"
       sub_category_name:
         | "SPORT_OLYMPIC_PARALYMPIC"
         | "NON_OLYMPIC"
@@ -340,7 +340,7 @@ export const Constants = {
         "CONCERT",
       ],
       event_status: ["PENDING", "ANNOUNCED"],
-      role: ["ADMIN", "USER"],
+      role: ["admin", "collaborator", "viewer"],
       sub_category_name: [
         "SPORT_OLYMPIC_PARALYMPIC",
         "NON_OLYMPIC",

@@ -5,14 +5,19 @@ import type { Database } from '@/types/supabase';
 
 const ROUTES = {
   AUTH: ['/login', '/set-password'],
-  ADMIN_ONLY: ['/dashboard'],
-  ADMIN_COLLABORATOR: ['/users', '/events']
+  ADMIN_ONLY: ['/users/create'],
+  ADMIN_VIEWER: ['/dashboard', '/users', '/events']
 } as const;
 
 const ROLES = {
   ADMIN: 'admin',
-  COLLABORATOR: 'collaborator'
+  COLLABORATOR: 'collaborator',
+  VIEWER: 'viewer'
 } as const;
+
+const restrictedMethods = ['POST', 'PUT', 'DELETE'];
+
+const isAdminOrViewer = (role: string) => role === ROLES.ADMIN || role === ROLES.VIEWER;
 
 const isPathInRoutes = (pathname: string, routes: readonly string[]) => 
   routes.some(route => pathname.startsWith(route));
@@ -30,10 +35,6 @@ const createRedirectResponse = (request: NextRequest, path: string, params?: Rec
 const createErrorResponse = (message: string, status: number = 401) => 
   NextResponse.json({ error: message }, { status });
 
-const getRoleBasedRedirect = (userRole: string) => 
-  userRole === ROLES.ADMIN ? '/dashboard' : '/events';
-
-// Main middleware function
 export async function middleware(request: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareClient<Database>({ req: request, res });
@@ -41,12 +42,35 @@ export async function middleware(request: NextRequest) {
 
   try {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
     if (sessionError) {
-      return createRedirectResponse(request, '/login', { error: 'session_error' });
+      console.error('Session error:', sessionError);
+      if (!isPathInRoutes(pathname, ROUTES.AUTH)) {
+        return createRedirectResponse(request, '/login', { error: 'session_error' });
+      }
+      return res;
     }
 
     if (pathname.startsWith('/api/')) {
-      return session ? res : createErrorResponse('Unauthorized');
+      if (!session) {
+        return createErrorResponse('Unauthorized');
+      }
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+
+      if (userError || !userData) {
+        return createErrorResponse('Role fetch failed', 403);
+      }
+
+      if (restrictedMethods.includes(request.method) && userData.role === ROLES.VIEWER) {
+        return createErrorResponse('Viewers are not allowed to perform this action', 403);
+      }
+
+      return res;
     }
 
     if (!session) {
@@ -69,23 +93,28 @@ export async function middleware(request: NextRequest) {
     const userRole = userData.role;
 
     if (isPathInRoutes(pathname, ROUTES.AUTH)) {
-      return createRedirectResponse(request, getRoleBasedRedirect(userRole));
+      if (isAdminOrViewer(userRole)) {
+        return createRedirectResponse(request, '/dashboard');
+      }
+      return createRedirectResponse(request, '/events');
     }
 
     if (isPathInRoutes(pathname, ROUTES.ADMIN_ONLY) && userRole !== ROLES.ADMIN) {
       return createRedirectResponse(request, '/events');
     }
 
-    if (isPathInRoutes(pathname, ROUTES.ADMIN_COLLABORATOR) && 
-        userRole !== ROLES.ADMIN && 
-        userRole !== ROLES.COLLABORATOR) {
-      return createRedirectResponse(request, '/login', { error: 'access_denied' });
+    if (isPathInRoutes(pathname, ROUTES.ADMIN_VIEWER) && !isAdminOrViewer(userRole)) {
+      return createRedirectResponse(request, '/events');
     }
 
     return res;
 
-  } catch {
-    return createRedirectResponse(request, '/login', { error: 'middleware_exception' });
+  } catch (error) {
+    console.error('Middleware exception:', error);
+    if (!isPathInRoutes(pathname, ROUTES.AUTH)) {
+      return createRedirectResponse(request, '/login', { error: 'middleware_exception' });
+    }
+    return res;
   }
 }
 

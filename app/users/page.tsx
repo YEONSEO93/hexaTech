@@ -7,8 +7,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import MainLayout from "@/components/layouts/MainLayout";
 import BaseTable, { BaseColumnProps } from "@/components/ui/base-table/base-table";
-import { Database } from '@/types/supabase'; 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Database } from '@/types/supabase';
+import { RoleBasedRender } from "@/components/RoleBasedRender";
 
 type UserData = Pick<
   Database['public']['Tables']['users']['Row'], 
@@ -17,36 +17,9 @@ type UserData = Pick<
 
 export default function UsersPage() { 
   const router = useRouter();
-  const supabase = createClientComponentClient<Database>();
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [isLoadingRole, setIsLoadingRole] = useState(true);
-
-  const fetchUserRole = useCallback(async () => {
-    setIsLoadingRole(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setUserRole(null);
-        return;
-      }
-      const { data: userData, error: roleError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (roleError) throw roleError;
-      setUserRole(userData?.role as string ?? null);
-    } catch (err) {
-      console.error("Error fetching user role:", err);
-      setUserRole(null);
-    } finally {
-      setIsLoadingRole(false);
-    }
-  }, [supabase]);
 
   const fetchUsers = useCallback(async () => { 
     setLoading(true);
@@ -84,9 +57,8 @@ export default function UsersPage() {
   }, []); 
 
   useEffect(() => {
-    fetchUserRole();
     fetchUsers();
-  }, [fetchUserRole, fetchUsers]); 
+  }, [fetchUsers]); 
 
   const columns: BaseColumnProps<UserData>[] = [
       {
@@ -130,13 +102,14 @@ export default function UsersPage() {
         field: "id", 
         header: "Actions",
         body: (rowData) => (
-          <Button
-            size="sm"
-            onClick={() => router.push(`/users/${rowData.id}/edit`)}
-            disabled={userRole !== 'admin'}
-          >
-            Edit
-          </Button>
+          <RoleBasedRender allowedRoles={['admin']}>
+            <Button
+              size="sm"
+              onClick={() => router.push(`/users/${rowData.id}/edit`)}
+            >
+              Edit
+            </Button>
+          </RoleBasedRender>
         ),
         style: { width: 'auto', textAlign: 'center' }
       },
@@ -148,7 +121,7 @@ export default function UsersPage() {
       <MainLayout>
         <div className="flex items-center justify-between">
           <PageHeader title="User Management" />
-          {!isLoadingRole && userRole === 'admin' && (
+          <RoleBasedRender allowedRoles={['admin']}>
             <div className="px-8 py-4">
               <Button
                 size="sm"
@@ -158,7 +131,7 @@ export default function UsersPage() {
                 CREATE USER
               </Button>
             </div>
-          )}
+          </RoleBasedRender>
         </div>
         <div className="p-8">
           {error && 
@@ -166,9 +139,9 @@ export default function UsersPage() {
               <span className="font-medium">Error:</span> {error}
             </div>
           }
-          {(loading || isLoadingRole) && <p>Loading...</p>} 
-          {!loading && !isLoadingRole && users.length === 0 && !error && <p>No users found.</p>} 
-          {!loading && !isLoadingRole && users.length > 0 && (
+          {loading && <p>Loading...</p>} 
+          {!loading && users.length === 0 && !error && <p>No users found.</p>} 
+          {!loading && users.length > 0 && (
             <BaseTable
               value={users}
               columns={columns}

@@ -9,8 +9,8 @@ import { z } from 'zod';
 const inviteUserSchema = z.object({
   name: z.string().min(1, { message: "Name is required and cannot be empty" }),
   email: z.string().email({ message: "Invalid email address provided" }),
-  role: z.enum(['admin', 'collaborator'], {
-    errorMap: () => ({ message: "Invalid role provided. Must be 'admin' or 'collaborator'." }) 
+  role: z.enum(['admin', 'collaborator', 'viewer'], {
+    errorMap: () => ({ message: "Invalid role provided. Must be 'admin', 'collaborator', or 'viewer'." }) 
   }),
   company: z.string().min(1, { message: "Company is required and cannot be empty" }),
   profilePhoto: z.string().optional(),
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const authResult = await authorizeRequest(request, { 
-      allowedRoles: ['admin'],
+      allowedRoles: ['admin', 'viewer'],
       supabaseClient: supabase
     });
     if (authResult instanceof NextResponse) {
