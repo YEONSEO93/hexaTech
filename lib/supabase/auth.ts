@@ -25,17 +25,15 @@ export interface AuthResponse {
   error?: string;
 }
 
-// Check current session
 export const checkSession = async (): Promise<AuthResponse> => {
   try {
     const supabase = createClientComponentClient<Database>();
     const { data: { session }, error } = await supabase.auth.getSession();
 
     if (error || !session) {
-      return { success: false, error: 'No active session' };
+      return { success: false, error: error?.message || 'No active session' };
     }
 
-    // Get user role from users table
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('role, must_change_password')
@@ -53,7 +51,7 @@ export const checkSession = async (): Promise<AuthResponse> => {
           id: session.user.id,
           email: session.user.email!,
           role: userData.role as UserRole,
-          must_change_password: userData.must_change_password
+          must_change_password: userData.must_change_password ?? false
         }
       }
     };
@@ -63,7 +61,6 @@ export const checkSession = async (): Promise<AuthResponse> => {
   }
 };
 
-// Sign in with email and password
 export const signInWithEmail = async (email: string, password: string): Promise<AuthResponse> => {
   try {
     const supabase = createClientComponentClient<Database>();
@@ -72,11 +69,10 @@ export const signInWithEmail = async (email: string, password: string): Promise<
       password,
     });
 
-    if (error || !data.session) {
+    if (error || !data?.session) {
       return { success: false, error: error?.message || 'Invalid credentials' };
     }
 
-    // Get user role from users table
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('role, must_change_password')
@@ -94,7 +90,7 @@ export const signInWithEmail = async (email: string, password: string): Promise<
           id: data.session.user.id,
           email: data.session.user.email!,
           role: userData.role as UserRole,
-          must_change_password: userData.must_change_password
+          must_change_password: userData.must_change_password ?? false
         }
       }
     };
@@ -104,7 +100,6 @@ export const signInWithEmail = async (email: string, password: string): Promise<
   }
 };
 
-// Sign out
 export const signOut = async (): Promise<{ success: boolean; error?: string }> => {
   try {
     const supabase = createClientComponentClient<Database>();
@@ -121,17 +116,15 @@ export const signOut = async (): Promise<{ success: boolean; error?: string }> =
   }
 };
 
-// Get current user
 export const getCurrentUser = async (): Promise<AuthResponse> => {
   try {
     const supabase = createClientComponentClient<Database>();
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user) {
-      return { success: false, error: 'No authenticated user' };
+      return { success: false, error: error?.message || 'No authenticated user' };
     }
 
-    // Get user role from users table
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('role, must_change_password')
@@ -149,7 +142,7 @@ export const getCurrentUser = async (): Promise<AuthResponse> => {
           id: user.id,
           email: user.email!,
           role: userData.role as UserRole,
-          must_change_password: userData.must_change_password
+          must_change_password: userData.must_change_password ?? false
         }
       }
     };
@@ -157,4 +150,4 @@ export const getCurrentUser = async (): Promise<AuthResponse> => {
     console.error('Get current user error:', error);
     return { success: false, error: 'Failed to get current user' };
   }
-}; 
+};

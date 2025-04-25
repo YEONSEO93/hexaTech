@@ -3,7 +3,6 @@ import {
   ReactNode,
   useState,
   useEffect,
-  Fragment,
   ChangeEvent,
 } from "react";
 import { FilterMatchMode } from "primereact/api";
@@ -33,7 +32,7 @@ type FiltersObject = DataTableFilterMeta;
 
 type FilterOptions = ColumnFilterElementTemplateOptions;
 
-type BaseColumnProps<T> = {
+export type BaseColumnProps<T> = {
   field: Extract<keyof T, string>;
   header: string;
   sortable?: boolean;
@@ -48,6 +47,9 @@ type BaseTableProps<T> = {
   columns: BaseColumnProps<T>[];
   tableStyle?: CSSProperties;
   enableGlobalFilter?: boolean;
+  paginator?: boolean;
+  rows?: number;
+  rowsPerPageOptions?: number[];
 };
 
 const generateFilters = <T,>(columns: BaseColumnProps<T>[]): FiltersObject => {
@@ -89,60 +91,64 @@ const getDataType = (filterType: FilterType): DataType | undefined => {
 
 const createFilterElement =
   <T,>(filterType: FilterType, data?: T[]) =>
-  (options: FilterOptions) => {
-    switch (filterType) {
-      case "date":
-        return (
-          <Calendar
-            value={options.value}
-            onChange={(e) => {
-              console.log(e.value);
-              options.filterCallback(e.value, options.index);
-            }}
-            dateFormat="dd/mm/yy"
-            placeholder="dd/mm/yyyy"
-            mask="99/99/9999"
-          />
-        );
-      case "boolean":
-        return (
-          <Dropdown
-            value={options.value}
-            options={[
-              { label: "Yes", value: true },
-              { label: "No", value: false },
-            ]}
-            onChange={(e) => options.filterCallback(e.value, options.index)}
-            placeholder="Select"
-          />
-        );
-      case "number":
-        return (
-          <InputNumber
-            value={options.value}
-            onChange={(e) => options.filterCallback(e.value, options.index)}
-          />
-        );
-      case "dropdown":
-        const dropdownOptions = [
-          ...new Set(data?.map((obj) => obj[options.field as keyof T])),
-        ];
-
-        return (
-          <MultiSelect
-            key={options.value}
-            value={options.value}
-            options={dropdownOptions}
-            onChange={(e) => {
-              options.filterCallback(e.value);
-            }}
-            placeholder="Any"
-            className="p-column-filter"
-          />
-        );
-      default:
-        return null;
-    }
+  {
+    const FilterElementComponent = (options: FilterOptions) => {
+      switch (filterType) {
+        case "date":
+          return (
+            <Calendar
+              value={options.value}
+              onChange={(e) => {
+                console.log(e.value);
+                options.filterCallback(e.value, options.index);
+              }}
+              dateFormat="dd/mm/yy"
+              placeholder="dd/mm/yyyy"
+              mask="99/99/9999"
+            />
+          );
+        case "boolean":
+          return (
+            <Dropdown
+              value={options.value}
+              options={[
+                { label: "Yes", value: true },
+                { label: "No", value: false },
+              ]}
+              onChange={(e) => options.filterCallback(e.value, options.index)}
+              placeholder="Select"
+            />
+          );
+        case "number":
+          return (
+            <InputNumber
+              value={options.value}
+              onChange={(e) => options.filterCallback(e.value, options.index)}
+            />
+          );
+        case "dropdown":
+          const dropdownOptions = [
+            ...new Set(data?.map((obj) => obj[options.field as keyof T])),
+          ];
+  
+          return (
+            <MultiSelect
+              key={options.value}
+              value={options.value}
+              options={dropdownOptions}
+              onChange={(e) => {
+                options.filterCallback(e.value);
+              }}
+              placeholder="Any"
+              className="p-column-filter"
+            />
+          );
+        default:
+          return null;
+      }
+    };
+    FilterElementComponent.displayName = `FilterElement(${filterType})`; 
+    return FilterElementComponent;
   };
 
 const renderFilterElement = <T,>(filterType: FilterType, value: T[]) =>
@@ -177,12 +183,11 @@ const renderBodyElement = <T,>(
         ? renderBooleanElement(value)
         : undefined;
     default:
-      if (typeof value === "string" || typeof value === "number")
-        return <span>{value}</span>;
+      return (typeof value === "string" || typeof value === "number") ? String(value) : '';
   }
 };
 
-const convertDateData = <T extends Record<string, any>>(data: T[]) => {
+const convertDateData = <T extends Record<string, unknown>>(data: T[]) => {
   const isoDateRegex = /^\d{4}-\d{2}-\d{2}(T.*)?$/;
   return data.map((row) =>
     Object.fromEntries(
@@ -201,8 +206,8 @@ const hasDateFields = <T,>(columns: BaseColumnProps<T>[]) => {
   return columns.some((col) => col.filterType === "date");
 };
 
-export default function BaseTable<T extends object>(props: BaseTableProps<T>) {
-  const { value, columns, ...rest } = props;
+export default function BaseTable<T extends Record<string, unknown>>(props: BaseTableProps<T>) {
+  const { value, columns, paginator, rows, rowsPerPageOptions, ...rest } = props;
   const [filters, setFilters] = useState<FiltersObject>({});
   const [selected, setSelected] = useState<SelectedRow>([]);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
@@ -216,11 +221,12 @@ export default function BaseTable<T extends object>(props: BaseTableProps<T>) {
     initFilters();
   }, []);
 
-  const onRowEditComplete = (e) => {};
-
-  const onEdit = (e) => {};
-
-  const onDelete = (e) => {};
+  const onRowEditComplete = () => {};
+  
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const onEdit = (rowData: T) => {};
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const onDelete = (rowData: T) => {};
 
   const clearFilter = () => {
     initFilters();
@@ -228,7 +234,7 @@ export default function BaseTable<T extends object>(props: BaseTableProps<T>) {
 
   const onGlobalFilterChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    let _filters = { ...filters };
+    const _filters = { ...filters };
 
     const globalFilter = _filters["global"];
 
@@ -273,9 +279,9 @@ export default function BaseTable<T extends object>(props: BaseTableProps<T>) {
       header={header}
       globalFilterFields={globalFilterFields}
       size="large"
-      paginator
-      rows={10}
-      rowsPerPageOptions={[10, 20, 30, 40]}
+      paginator={paginator}
+      rows={rows}
+      rowsPerPageOptions={rowsPerPageOptions}
       scrollable
       scrollHeight="600px"
       removableSort
@@ -289,18 +295,21 @@ export default function BaseTable<T extends object>(props: BaseTableProps<T>) {
       {...rest}
     >
       <Column selectionMode="multiple" headerStyle={{ width: "3rem" }}></Column>
-      {columns.map(({ field, header, filterType = "text", ...rest }, i) => (
-        <Column
-          key={`${field}-${i}`}
-          field={field}
-          header={header}
-          {...rest}
-          dataType={getDataType(filterType)}
-          showFilterMatchModes={filterType !== "dropdown"}
-          filterElement={renderFilterElement(filterType, value)}
-          body={(rowData) => renderBodyElement(filterType, field, rowData)}
-        />
-      ))}
+      {columns.map(({ field, header, filterType, body: columnBody, ...rest }, i) => {
+        const filterTypeToUse = filterType || "text";
+        return (
+          <Column
+            key={`${field}-${i}`}
+            field={field}
+            header={header}
+            {...rest}
+            dataType={getDataType(filterTypeToUse)}
+            showFilterMatchModes={filterTypeToUse !== "dropdown"}
+            filterElement={rest.filter ? renderFilterElement(filterTypeToUse, value) : undefined}
+            body={columnBody ? columnBody : (rowData) => renderBodyElement(filterTypeToUse, field, rowData)}
+          />
+        );
+      })}
       <Column
         headerStyle={{ width: "1rem" }}
         bodyStyle={{ padding: ".5rem" }}

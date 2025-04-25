@@ -1,46 +1,61 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import type { Database } from '@/types/supabase';
 
-export const config = {
-  matcher: [
-    '/',
-    '/login',
-    '/set-password',
-    '/dashboard/:path*',
-    '/api/:path*',
-  ],
+const ROUTES = {
+  AUTH: ['/login', '/set-password'],
+  ADMIN_ONLY: ['/dashboard'],
+  ADMIN_COLLABORATOR: ['/users', '/events']
+} as const;
+
+const ROLES = {
+  ADMIN: 'admin',
+  COLLABORATOR: 'collaborator'
+} as const;
+
+const isPathInRoutes = (pathname: string, routes: readonly string[]) => 
+  routes.some(route => pathname.startsWith(route));
+
+const createRedirectResponse = (request: NextRequest, path: string, params?: Record<string, string>) => {
+  const url = new URL(path, request.url);
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      url.searchParams.set(key, value);
+    });
+  }
+  return NextResponse.redirect(url);
 };
 
-export async function middleware(request: NextRequest) {
-  try {
-    const res = NextResponse.next();
-    const supabase = createMiddlewareClient({ req: request, res });
-    
-    // Check session
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    const pathname = request.nextUrl.pathname;
+const createErrorResponse = (message: string, status: number = 401) => 
+  NextResponse.json({ error: message }, { status });
 
-    // Handle API routes
-    if (pathname.startsWith('/api/')) {
-      if (!session) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-      return res;
+const getRoleBasedRedirect = (userRole: string) => 
+  userRole === ROLES.ADMIN ? '/dashboard' : '/events';
+
+// Main middleware function
+export async function middleware(request: NextRequest) {
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient<Database>({ req: request, res });
+  const { pathname } = request.nextUrl;
+
+  try {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      return createRedirectResponse(request, '/login', { error: 'session_error' });
     }
 
-    // Handle page routes
+    if (pathname.startsWith('/api/')) {
+      return session ? res : createErrorResponse('Unauthorized');
+    }
+
     if (!session) {
-      // Allow access to login and set-password pages without session
-      if (pathname === '/login' || pathname === '/set-password') {
+      if (isPathInRoutes(pathname, ROUTES.AUTH)) {
         return res;
       }
-      // Redirect all other pages to login if no session
-      return NextResponse.redirect(new URL('/login', request.url));
+      return createRedirectResponse(request, '/login', { redirectedFrom: pathname });
     }
 
-    // Get user role from users table
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('role')
@@ -48,37 +63,39 @@ export async function middleware(request: NextRequest) {
       .single();
 
     if (userError || !userData) {
-      console.error('Middleware: Session exists but failed to get user data', userError);
-      // Clear potentially invalid session? Might be too aggressive.
-      return NextResponse.redirect(new URL('/login', request.url));
+      return createRedirectResponse(request, '/login', { error: 'role_fetch_failed' });
     }
 
-    const role = userData.role;
+    const userRole = userData.role;
 
-    // Handle role-based routing
-    if (pathname === '/') {
-      // Redirect root to role-specific dashboard
-      return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url));
+    if (isPathInRoutes(pathname, ROUTES.AUTH)) {
+      return createRedirectResponse(request, getRoleBasedRedirect(userRole));
     }
 
-    if (pathname === '/login') {
-      // Redirect authenticated users away from login to their dashboard
-      return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url));
+    if (isPathInRoutes(pathname, ROUTES.ADMIN_ONLY) && userRole !== ROLES.ADMIN) {
+      return createRedirectResponse(request, '/events');
     }
 
-    if (pathname.startsWith('/dashboard/admin')) {
-      if (role !== 'admin') {
-        return NextResponse.redirect(new URL('/dashboard/collaborator', request.url));
-      }
-    } else if (pathname.startsWith('/dashboard/collaborator')) {
-      if (role !== 'collaborator') {
-        return NextResponse.redirect(new URL('/dashboard/admin', request.url));
-      }
+    if (isPathInRoutes(pathname, ROUTES.ADMIN_COLLABORATOR) && 
+        userRole !== ROLES.ADMIN && 
+        userRole !== ROLES.COLLABORATOR) {
+      return createRedirectResponse(request, '/login', { error: 'access_denied' });
     }
 
     return res;
-  } catch (error) {
-    console.error('Middleware error:', error);
-    return NextResponse.redirect(new URL('/login', request.url));
+
+  } catch {
+    return createRedirectResponse(request, '/login', { error: 'middleware_exception' });
   }
-} 
+}
+
+export const config = {
+  matcher: [
+    '/login',
+    '/set-password',
+    '/dashboard/:path*',
+    '/users/:path*',
+    '/events/:path*',
+    '/api/:path*',
+  ],
+};

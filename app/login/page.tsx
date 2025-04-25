@@ -5,14 +5,13 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
-import { checkSession, signInWithEmail } from "@/lib/supabase/auth";
+import { useState } from "react";
+import { signInWithEmail } from "@/lib/supabase/auth";
 
 const LoginPage = () => {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,28 +29,31 @@ const LoginPage = () => {
         throw new Error('Please enter both email and password');
       }
 
-      // Use the auth utility for sign in
-      const { data, error: signInError } = await signInWithEmail(email.trim(), password.trim());
+      const { data: signInData, error: signInError } = await signInWithEmail(email.trim(), password.trim());
       
       if (signInError) {
-        throw new Error(typeof signInError === 'string' ? signInError : 'Failed to sign in');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const message = (signInError as any)?.message || 'Failed to sign in. Please check your credentials.';
+        throw new Error(message);
       }
 
-      if (!data?.user) {
-        throw new Error('No user data returned');
+      if (!signInData?.user) {
+        throw new Error('Login failed: No user data returned.');
       }
-
-      // Redirect based on role
-      const role = data.user.role;
-      console.log('Login successful, user role:', role);
       
-      if (role === 'admin') {
-        console.log('Redirecting admin to dashboard/admin');
-        router.push("/dashboard/admin");
-      } else {
-        console.log('Redirecting user to dashboard');
-        router.push("/dashboard");
+      const userRole = signInData.user.role;
+      console.log(`Login successful. Role from signInWithEmail: ${userRole}`);
+
+      let redirectPath = '/login';
+      if (userRole === 'admin') {
+        redirectPath = '/dashboard';
+      } else if (userRole === 'collaborator') {
+        redirectPath = '/events';
       }
+
+      console.log(`Redirecting to: ${redirectPath}`);
+      router.push(redirectPath);
+
     } catch (error) {
       console.error('Login error:', error);
       setError(error instanceof Error ? error.message : 'Failed to login');
@@ -128,7 +130,7 @@ const LoginPage = () => {
                     Forgot Password?
                   </Link>
                 </div>
-                <Button type="submit" fullWidth disabled={loading}>
+                <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Logging in..." : "Log In"}
                 </Button>
               </div>
