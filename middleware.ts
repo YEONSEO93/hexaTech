@@ -6,7 +6,7 @@ import type { Database } from '@/types/supabase';
 const ROUTES = {
   AUTH: ['/login', '/set-password'],
   ADMIN_ONLY: ['/users/create'],
-  ADMIN_VIEWER: ['/dashboard', '/users', '/events']
+  ADMIN_VIEWER: ['/dashboard', '/users']
 } as const;
 
 const ROLES = {
@@ -19,7 +19,7 @@ const restrictedMethods = ['POST', 'PUT', 'DELETE'];
 
 const isAdminOrViewer = (role: string) => role === ROLES.ADMIN || role === ROLES.VIEWER;
 
-const isPathInRoutes = (pathname: string, routes: readonly string[]) => 
+const isPathInRoutes = (pathname: string, routes: readonly string[]) =>
   routes.some(route => pathname.startsWith(route));
 
 const createRedirectResponse = (request: NextRequest, path: string, params?: Record<string, string>) => {
@@ -32,7 +32,7 @@ const createRedirectResponse = (request: NextRequest, path: string, params?: Rec
   return NextResponse.redirect(url);
 };
 
-const createErrorResponse = (message: string, status: number = 401) => 
+const createErrorResponse = (message: string, status: number = 401) =>
   NextResponse.json({ error: message }, { status });
 
 export async function middleware(request: NextRequest) {
@@ -41,58 +41,36 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   try {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError) {
-      console.error('Session error:', sessionError);
+    //To check if user is logged in, we can use getUser() method directly, as it only returns a user if there is a valid session token. This way, we can also check the role with user.role without a database query
+
+    //Also refer to Supabase Auth docs (Hook up middleware section): https://supabase.com/docs/guides/auth/server-side/nextjs 
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.error('Authentication error:', userError);
       if (!isPathInRoutes(pathname, ROUTES.AUTH)) {
-        return createRedirectResponse(request, '/login', { error: 'session_error' });
+        return createRedirectResponse(request, '/login', { error: userError?.message || "User not found!" });
       }
       return res;
     }
 
     if (pathname.startsWith('/api/')) {
-      if (!session) {
-        return createErrorResponse('Unauthorized');
-      }
 
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      if (userError || !userData) {
-        return createErrorResponse('Role fetch failed', 403);
-      }
-
-      if (restrictedMethods.includes(request.method) && userData.role === ROLES.VIEWER) {
+      if (restrictedMethods.includes(request.method) && user.user_metadata.role === ROLES.VIEWER) {
         return createErrorResponse('Viewers are not allowed to perform this action', 403);
       }
 
       return res;
     }
 
-    if (!session) {
-      if (isPathInRoutes(pathname, ROUTES.AUTH)) {
-        return res;
-      }
-      return createRedirectResponse(request, '/login', { redirectedFrom: pathname });
+    const userRole = user.user_metadata.role;
+
+    if (!userRole) {
+      return createErrorResponse("Role not found", 404)
     }
 
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
-
-    if (userError || !userData) {
-      return createRedirectResponse(request, '/login', { error: 'role_fetch_failed' });
-    }
-
-    const userRole = userData.role;
-
-    if (isPathInRoutes(pathname, ROUTES.AUTH)) {
+    //Add check to handle root URL redirect
+    if (pathname === "/" || isPathInRoutes(pathname, ROUTES.AUTH)) {
       if (isAdminOrViewer(userRole)) {
         return createRedirectResponse(request, '/dashboard');
       }
@@ -100,7 +78,8 @@ export async function middleware(request: NextRequest) {
     }
 
     if (isPathInRoutes(pathname, ROUTES.ADMIN_ONLY) && userRole !== ROLES.ADMIN) {
-      return createRedirectResponse(request, '/events');
+      //Let it go to the root and redirect based on our role check above (user roles could be either Viewer or Collaborator)
+      return createRedirectResponse(request, '/');
     }
 
     if (isPathInRoutes(pathname, ROUTES.ADMIN_VIEWER) && !isAdminOrViewer(userRole)) {
@@ -111,20 +90,18 @@ export async function middleware(request: NextRequest) {
 
   } catch (error) {
     console.error('Middleware exception:', error);
-    if (!isPathInRoutes(pathname, ROUTES.AUTH)) {
-      return createRedirectResponse(request, '/login', { error: 'middleware_exception' });
-    }
-    return res;
+    //This is a general error handler, so we can return an error code to prevent infinite redirects if the cause of the error is not related to path access 
+    return createErrorResponse('Something went wrong', 500)
   }
 }
 
 export const config = {
   matcher: [
+    '/',
     '/login',
     '/set-password',
     '/dashboard/:path*',
     '/users/:path*',
-    '/events/:path*',
     '/api/:path*',
   ],
 };
