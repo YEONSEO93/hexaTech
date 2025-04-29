@@ -23,46 +23,24 @@ export function Sidebar() {
   const supabase = createClientComponentClient<Database>();
 
   const [userId, setUserId] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<Database['public']['Tables']['users']['Row']['role'] | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
       setIsLoading(true);
-      try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-        if (userError) throw userError;
-
-        if (user) {
-          setUserId(user.id);
-          const { data: userData, error: roleError } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-          if (roleError) {
-             console.error('Sidebar: Error fetching user role:', roleError);
-             setUserRole(null); 
-          } else if (userData) {
-            setUserRole(userData.role);
-          }
-        } else {
-          setUserId(null);
-          setUserRole(null);
-        }
-      } catch (error) {
-        console.error('Sidebar: Error fetching user session or role:', error);
-        setUserId(null);
-        setUserRole(null);
-      } finally {
-        setIsLoading(false);
+      if (user) {
+        setUserId(user.id);
+        setUserRole(user.user_metadata.role)
       }
+
+      setIsLoading(false)
     };
 
     fetchUser();
-    
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       console.log('Sidebar Auth event:', event);
       fetchUser();
@@ -74,22 +52,22 @@ export function Sidebar() {
   }, [supabase]);
 
 
-  type NavigationItem = { 
-      name: string; 
-      href: string; 
-      roles: (Database['public']['Tables']['users']['Row']['role'])[]; 
+  type NavigationItem = {
+    name: string;
+    href: string;
+    roles: (Database['public']['Tables']['users']['Row']['role'])[];
   };
-  let navigationItems: NavigationItem[] = []; 
+  let navigationItems: NavigationItem[] = [];
 
-  if (!isLoading && userRole) { 
+  if (!isLoading && userRole) {
     navigationItems = defaultNavigation
       .filter(item => item.roles.includes(userRole))
-      .map(item => ({ ...item })); 
+      .map(item => ({ ...item }));
 
     if (userRole === 'collaborator' && userId) {
       navigationItems.push({
-        name: "My Profile", 
-        href: `/users/${userId}`, 
+        name: "My Profile",
+        href: `/users/${userId}`,
         roles: ['collaborator']
       });
     }
@@ -128,11 +106,10 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`rounded-md px-6 py-3 text-[15px] ${
-                (pathname === item.href || (item.href.startsWith('/users/') && pathname.startsWith('/users/')))
-                  ? "bg-gray-100 font-medium"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
+              className={`rounded-md px-6 py-3 text-[15px] ${(pathname === item.href || (item.href.startsWith('/users/') && pathname.startsWith('/users/')))
+                ? "bg-gray-100 font-medium"
+                : "text-gray-600 hover:bg-gray-50"
+                }`}
             >
               {item.name}
             </Link>
