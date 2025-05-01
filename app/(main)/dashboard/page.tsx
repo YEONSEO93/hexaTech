@@ -1,15 +1,13 @@
 "use client";
 
-import { Sidebar } from '@/components/sidebar';
-import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
+import { Dashboard } from '@/components/dashboard/Dashboard';
 
 export default function DashboardPage() {
 
   return (
     <>
-      <Sidebar />
       <main className="pl-[260px]">
-        <AdminDashboard />
+        <Dashboard />
       </main>
     </>
   );
