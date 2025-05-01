@@ -26,7 +26,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
         setUserId(user.id);
@@ -61,12 +61,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       .filter(item => item.roles.includes(userRole))
       .map(item => ({ ...item }));
 
+    console.log(userRole)
     if (userRole === 'collaborator' && userId) {
       navigationItems.push({
         name: "My Profile",
         href: `/users/${userId}`,
         roles: ['collaborator']
       });
+      console.log(navigationItems)
     }
   }
 
