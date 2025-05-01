@@ -6,9 +6,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <main className="pl-[260px]">
-        <Dashboard />
-      </main>
+      <Dashboard />
     </>
   );
 }

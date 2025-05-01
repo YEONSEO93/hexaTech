@@ -6,6 +6,7 @@ import type { Database } from '@/types/supabase';
 
 import { ReactNode } from 'react';
 import { Sidebar } from '@/components/sidebar';
+import MainLayout from './MainLayout';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -76,7 +77,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="flex h-screen bg-gray-100">
       <Sidebar navigationItems={navigationItems} isLoading={isLoading} />
       <div className="flex-1 p-8 overflow-y-auto">
-        {children}
+        <MainLayout>
+          {children}
+        </MainLayout>
       </div>
     </div>
   );

@@ -59,82 +59,79 @@ export default function CreateUserPage() {
 
   return (
     <>
-      <Sidebar />
-      <MainLayout>
-        <PageHeader title="Create User" />
-        <div className="flex justify-center p-8">
-          <div className="w-full max-w-lg p-8 bg-white rounded-lg shadow-md">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter user's full name"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter user's email address"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="role">Role</Label>
-                <Select
-                  value={role}
-                  onValueChange={setRole}
-                  required
-                >
-                  <SelectTrigger id="role">
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="collaborator">Collaborator</SelectItem>
-                    <SelectItem value="viewer">Viewer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="company">Company</Label>
-                <Input
-                  id="company"
-                  type="text"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                  placeholder="Enter company name"
-                  required
-                />
-              </div>
+      <PageHeader title="Create User" />
+      <div className="flex justify-center p-8">
+        <div className="w-full max-w-lg p-8 bg-white rounded-lg shadow-md">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter user's full name"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter user's email address"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="role">Role</Label>
+              <Select
+                value={role}
+                onValueChange={setRole}
+                required
+              >
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="collaborator">Collaborator</SelectItem>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="company">Company</Label>
+              <Input
+                id="company"
+                type="text"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="Enter company name"
+                required
+              />
+            </div>
 
-              {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-red-600">{error}</p>}
 
-              <div className="flex justify-end pt-4 space-x-4">
-                <Button 
-                  type="button" 
-                  onClick={() => router.back()}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={loading}
-                >
-                  {loading ? 'Creating...' : 'Create User'}
-                </Button>
-              </div>
-            </form>
-          </div>
+            <div className="flex justify-end pt-4 space-x-4">
+              <Button
+                type="button"
+                onClick={() => router.back()}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? 'Creating...' : 'Create User'}
+              </Button>
+            </div>
+          </form>
         </div>
-      </MainLayout>
+      </div>
     </>
   );
 }

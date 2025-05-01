@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { PageHeader } from "../PageHeader";
 
 export function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -36,10 +37,8 @@ export function Dashboard() {
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-      </div>
+    <>
+      <PageHeader title="Dashboard" />
 
       <div className="p-6 bg-white rounded-lg shadow">
         {user?.email && (
@@ -51,6 +50,6 @@ export function Dashboard() {
           <p className="text-gray-600">Role: {user.user_metadata.role}</p>
         )}
       </div>
-    </div>
+    </>
   );
 }

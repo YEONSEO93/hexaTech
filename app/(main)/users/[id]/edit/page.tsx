@@ -12,7 +12,7 @@ type UserData = {
   email: string | null;
   role: string;
   company: string | null;
-  createdAt: string; 
+  createdAt: string;
 };
 
 export default function EditUser() {
@@ -47,28 +47,25 @@ export default function EditUser() {
     };
 
     fetchUserData();
-  }, [id]); 
+  }, [id]);
   return (
     <>
-      <Sidebar />
-      <MainLayout>
-        <PageHeader title={`Edit User: ${user?.name || id}`} />
-        <div className="p-8">
-          {loading && <p>Loading user data...</p>}
-          {error && <p className="text-red-500">Error: {error}</p>}
-          {user && (
-            <div className="space-y-2">
-              <p><strong>ID:</strong> {user.id}</p>
-              <p><strong>Name:</strong> {user.name || 'N/A'}</p>
-              <p><strong>Email:</strong> {user.email || 'N/A'}</p>
-              <p><strong>Role:</strong> {user.role}</p>
-              <p><strong>Company:</strong> {user.company || 'N/A'}</p>
-              <p><strong>Created At:</strong> {new Date(user.createdAt).toLocaleString()}</p>
-            </div>
-          )}
-          {!loading && !user && !error && <p>User data could not be loaded.</p>}
-        </div>
-      </MainLayout>
+      <PageHeader title={`Edit User: ${user?.name || id}`} />
+      <div className="p-8">
+        {loading && <p>Loading user data...</p>}
+        {error && <p className="text-red-500">Error: {error}</p>}
+        {user && (
+          <div className="space-y-2">
+            <p><strong>ID:</strong> {user.id}</p>
+            <p><strong>Name:</strong> {user.name || 'N/A'}</p>
+            <p><strong>Email:</strong> {user.email || 'N/A'}</p>
+            <p><strong>Role:</strong> {user.role}</p>
+            <p><strong>Company:</strong> {user.company || 'N/A'}</p>
+            <p><strong>Created At:</strong> {new Date(user.createdAt).toLocaleString()}</p>
+          </div>
+        )}
+        {!loading && !user && !error && <p>User data could not be loaded.</p>}
+      </div>
     </>
   );
 }

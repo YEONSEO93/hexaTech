@@ -117,38 +117,35 @@ export default function UsersPage() {
 
   return (
     <>
-      <MainLayout>
-
-        <div className="flex items-center justify-between">
-          <PageHeader title="User Management" />
-          <RoleBasedRender allowedRoles={['admin']}>
-            <div className="px-8 py-4">
-              <Button
-                size="sm"
-                className="px-6 py-2.5"
-                onClick={() => router.push("/users/create")}
-              >
-                CREATE USER
-              </Button>
-            </div>
-          </RoleBasedRender>
-        </div>
-        <div className="p-8">
-          {error &&
-            <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
-              <span className="font-medium">Error:</span> {error}
-            </div>
-          }
-          {loading && <p>Loading...</p>}
-          {!loading && users.length === 0 && !error && <p>No users found.</p>}
-          {!loading && users.length > 0 && (
-            <BaseTable
-              value={users}
-              columns={columns}
-            />
-          )}
-        </div>
-      </MainLayout>
+      <div className="flex items-center justify-between">
+        <PageHeader title="User Management" />
+        <RoleBasedRender allowedRoles={['admin']}>
+          <div className="px-8 py-4">
+            <Button
+              size="sm"
+              className="px-6 py-2.5"
+              onClick={() => router.push("/users/create")}
+            >
+              CREATE USER
+            </Button>
+          </div>
+        </RoleBasedRender>
+      </div>
+      <div className="p-8">
+        {error &&
+          <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+            <span className="font-medium">Error:</span> {error}
+          </div>
+        }
+        {loading && <p>Loading...</p>}
+        {!loading && users.length === 0 && !error && <p>No users found.</p>}
+        {!loading && users.length > 0 && (
+          <BaseTable
+            value={users}
+            columns={columns}
+          />
+        )}
+      </div>
     </>
   );
 }
