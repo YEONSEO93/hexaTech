@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import ExcelUploader from "./ExcelUploader";
 
 export function AdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -36,7 +37,6 @@ export function AdminDashboard() {
         };
 
         setUser(combinedUser);
-
       } catch (error) {
         console.error("Error in AdminDashboard:", error);
         setError(error instanceof Error ? error.message : "An error occurred");
@@ -72,6 +72,7 @@ export function AdminDashboard() {
           <p className="text-gray-600">Role: {user.user_metadata.role}</p>
         )}
       </div>
+      <ExcelUploader />
     </div>
   );
 }
