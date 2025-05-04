@@ -38,7 +38,7 @@ const SUBCATEGORY_ENUM_VALUES = [
   }
 
   // ---------- EVENT STATUS ----------
-const EVENT_STATUS_ENUM_VALUES = [
+  const EVENT_STATUS_ENUM_VALUES = [
     'PENDING',
     'ANNOUNCED',
   ] as const;
@@ -46,8 +46,9 @@ const EVENT_STATUS_ENUM_VALUES = [
   type EventStatusEnumType = (typeof EVENT_STATUS_ENUM_VALUES)[number];
   
   function isValidEventStatus(value: string | undefined): value is EventStatusEnumType {
-    return EVENT_STATUS_ENUM_VALUES.includes(value as EventStatusEnumType);
+    return EVENT_STATUS_ENUM_VALUES.includes(value?.toUpperCase() as EventStatusEnumType);
   }
+  
 
 
 //---------- Supabase Client ----------
@@ -69,13 +70,19 @@ export async function POST(req: NextRequest) {
             event_title: row.eventTitle,
             start_date: row.startDate,
             venue_name: row.venueName,
-            status: isValidEventStatus(row.status) ? row.status : 'PENDING',
+            status: isValidEventStatus(row.status)
+  ? row.status!.toUpperCase()
+  : 'PENDING',
             end_date: (row.endDate ?? undefined) as string | undefined,
             total_attendees: (row.totalAttendees ?? undefined) as number | undefined,
             details: (row.details ?? undefined) as string | undefined,
             category_name: isValidCategory(row.categoryName) ? row.categoryName : undefined,
             subcategory_name: isValidSubcategory(row.subCategoryName) ? row.subCategoryName : undefined,
-            total_attendee_category: (row.totalAttendeeCategory ?? undefined) as string | undefined,
+            // total_attendee_category: (row.totalAttendeeCategory ?? undefined) as string | undefined,
+            total_attendee_category:
+  row.totalAttendeeCategory && row.totalAttendeeCategory.trim() !== ''
+    ? row.totalAttendeeCategory
+    : undefined,
             company_name: row.company,
         });
 
