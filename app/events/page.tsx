@@ -1,7 +1,8 @@
 "use client";
 
-import { Sidebar } from '@/components/sidebar';
-import MainLayout from '@/components/layouts/MainLayout';
+import { Sidebar } from "@/components/sidebar";
+import MainLayout from "@/components/layouts/MainLayout";
+import EventList from "@/components/events/EventList";
 
 export default function EventsPage() {
   return (
@@ -14,10 +15,9 @@ export default function EventsPage() {
 
         <div className="p-6 bg-white rounded-lg shadow">
           <p>Event listing or details will be displayed here.</p>
+          <EventList />
         </div>
-
       </MainLayout>
     </>
   );
 }
-  
