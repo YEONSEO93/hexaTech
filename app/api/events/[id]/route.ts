@@ -3,6 +3,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/client";
 
+// GET /api/events/:id
+// Fetches a single event by ID
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
     const supabase = createAdminClient();
     const eventId = Number(params.id);
@@ -31,7 +33,8 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     return NextResponse.json(data);
   }
   
-
+// PATCH /api/events/:id
+// Updates an event by ID
   export async function PATCH(
     req: NextRequest,
     { params }: { params: { id: string } }
@@ -97,3 +100,33 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   
     return NextResponse.json({ data });
   }
+
+
+// DELETE /api/events/:id
+// Deletes an event by ID
+export async function DELETE(
+    _: NextRequest,
+    { params }: { params: { id: string } }
+  ) {
+    const supabase = createAdminClient();
+    const eventIdRaw = params.id;
+  
+    const eventId = Number(eventIdRaw);
+    if (isNaN(eventId)) {
+      return NextResponse.json({ error: "Invalid event ID" }, { status: 400 });
+    }
+  
+    const { data, error } = await supabase
+      .from("event")
+      .delete()
+      .eq("id", eventId)
+      .select();
+  
+    if (error) {
+      console.error("🔴 Supabase delete error:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  
+    return NextResponse.json({ data });
+  }
+

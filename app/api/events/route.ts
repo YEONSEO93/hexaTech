@@ -5,6 +5,26 @@ import { createAdminClient } from '@/lib/supabase/client';
 
 const supabase = createAdminClient();
 
+// POST /api/events
+// Creates a new event
+export async function POST(req: Request) {
+    const payload = await req.json();
+  
+    const { data, error } = await supabase
+      .from('event')
+      .insert(payload)
+      .select()
+      .single();
+  
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  
+    return NextResponse.json(data);
+  }
+  
+// GET /api/events
+// Fetches all events
 export async function GET() {
   const { data, error } = await supabase
     .from('event')
@@ -32,3 +52,4 @@ export async function GET() {
 
   return NextResponse.json(data);
 }
+

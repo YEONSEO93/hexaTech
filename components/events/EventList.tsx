@@ -29,6 +29,27 @@ export default function EventList() {
     return formattedDate;
   }
 
+  const handleDelete = async (id: number) => {
+    const confirm = window.confirm(
+      "Are you sure you want to delete this event?"
+    );
+    if (!confirm) return;
+
+    try {
+      const res = await fetch(`/api/events/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete");
+
+      alert("Event deleted successfully.");
+      router.refresh?.();
+    } catch (err) {
+      alert("Error deleting event.");
+      console.error(err);
+    }
+  };
+
   const router = useRouter();
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,15 +128,23 @@ export default function EventList() {
       body: (row) => <span>{row.sub_category?.name ?? "-"}</span>,
     },
     {
-      field: "id", // or "actions", any unique name
+      field: "id",
       header: "Actions",
       body: (row) => (
-        <button
-          onClick={() => router.push(`/events/${row.id}/edit`)}
-          className="rounded-md bg-[#001F4D] font-semibold text-white hover:bg-[#001F4D]/90 focus:outline-none px-4 py-2 text-sm  "
-        >
-          Edit
-        </button>
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => router.push(`/events/${row.id}/edit`)}
+            className="rounded-md bg-[#001F4D] font-semibold text-white hover:bg-[#001F4D]/90 focus:outline-none px-4 py-2 text-sm"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDelete(row.id)}
+            className="rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
+          >
+            Delete
+          </button>
+        </div>
       ),
       style: { textAlign: "center" },
     },
