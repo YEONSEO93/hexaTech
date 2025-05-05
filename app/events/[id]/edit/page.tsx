@@ -5,6 +5,7 @@
 import EventForm, { EventItem } from "@/components/events/EventForm";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Sidebar } from "@/components/sidebar";
 
 export default function EditEventPage() {
   const { id } = useParams();
@@ -36,9 +37,18 @@ export default function EditEventPage() {
   if (!event) return <p>Loading...</p>;
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow">
-      <h1 className="text-2xl font-bold mb-4">Edit Event</h1>
-      <EventForm mode="edit" defaultValues={event} onSubmit={handleSubmit} />
-    </div>
+    <>
+      <Sidebar />
+      <main className="pl-[260px]">
+        <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow">
+          <h1 className="text-2xl font-bold mb-4">Edit Event</h1>
+          <EventForm
+            mode="edit"
+            defaultValues={event}
+            onSubmit={handleSubmit}
+          />
+        </div>
+      </main>
+    </>
   );
 }

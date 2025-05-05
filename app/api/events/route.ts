@@ -23,6 +23,9 @@ export async function GET() {
     `)
     .order('start_date', { ascending: false });
 
+    console.log("📦 Events from API:", data);
+    
+
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
