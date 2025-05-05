@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import EventItem from "./EventItem";
 
 type EventItem = {
   id: number;
@@ -25,6 +26,7 @@ export default function EventList() {
     fetch("/api/events")
       .then((res) => res.json())
       .then((data) => {
+        console.log("📦 Events from API:", data);
         setEvents(data);
         setLoading(false);
       })
@@ -41,24 +43,7 @@ export default function EventList() {
   return (
     <ul className="space-y-4">
       {events.map((event) => (
-        <li key={event.id} className="p-4 border rounded shadow-sm bg-white">
-          <div className="font-bold text-lg">{event.name}</div>
-          <div className="text-sm text-gray-600">
-            {event.start_date} ~ {event.end_date ?? "N/A"} / {event.status}
-          </div>
-          <div className="text-sm">
-            Company: {event.company.name} / Venue: {event.venue.name}
-          </div>
-          <div className="text-sm">
-            Category: {event.category.name} / Sub: {event.sub_category.name}
-          </div>
-          {event.total_attendees && (
-            <div className="text-sm">
-              Total Attendees: {event.total_attendees} (
-              {event.total_attendee_category})
-            </div>
-          )}
-        </li>
+        <EventItem key={event.id} event={event} />
       ))}
     </ul>
   );
