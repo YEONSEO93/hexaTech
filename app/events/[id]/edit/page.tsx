@@ -6,6 +6,7 @@ import EventForm, { EventItem } from "@/components/events/EventForm";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Sidebar } from "@/components/sidebar";
+import MainLayout from "@/components/layouts/MainLayout";
 
 export default function EditEventPage() {
   const { id } = useParams();
@@ -39,16 +40,18 @@ export default function EditEventPage() {
   return (
     <>
       <Sidebar />
-      <main className="pl-[260px]">
-        <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow">
-          <h1 className="text-2xl font-bold mb-4">Edit Event</h1>
+      <MainLayout>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Events List</h1>
+        </div>
+        <div className="p-6 bg-white rounded-lg shadow">
           <EventForm
             mode="edit"
             defaultValues={event}
             onSubmit={handleSubmit}
           />
         </div>
-      </main>
+      </MainLayout>
     </>
   );
 }

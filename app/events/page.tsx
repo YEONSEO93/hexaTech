@@ -10,7 +10,7 @@ export default function EventsPage() {
       <Sidebar />
       <MainLayout>
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Events Page</h1>
+          <h1 className="text-2xl font-bold">Events List</h1>
         </div>
         <div className="p-6 bg-white rounded-lg shadow">
           <EventList />
