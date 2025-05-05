@@ -145,7 +145,7 @@ export type Database = {
           company: string
           company_id: number | null
           created_at: string
-          email: string | null
+          email: string
           id: string
           must_change_password: boolean | null
           name: string | null
@@ -157,7 +157,7 @@ export type Database = {
           company: string
           company_id?: number | null
           created_at?: string
-          email?: string | null
+          email: string
           id?: string
           must_change_password?: boolean | null
           name?: string | null
@@ -169,7 +169,7 @@ export type Database = {
           company?: string
           company_id?: number | null
           created_at?: string
-          email?: string | null
+          email?: string
           id?: string
           must_change_password?: boolean | null
           name?: string | null
