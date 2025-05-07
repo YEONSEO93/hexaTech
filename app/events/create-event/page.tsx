@@ -1,8 +1,11 @@
 // app/events/create/page.tsx
 "use client";
 
+import { Sidebar } from "@/components/sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import EventForm, { EventItem } from "@/components/events/EventForm";
 import { useRouter } from "next/navigation";
+import MainLayout from "@/components/layouts/MainLayout";
 
 export default function CreateEventPage() {
   const router = useRouter();
@@ -21,9 +24,16 @@ export default function CreateEventPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow">
-      <h1 className="text-2xl font-bold mb-4">Create Event</h1>
-      <EventForm mode="create" onSubmit={handleSubmit} />
-    </div>
+    <>
+      <Sidebar />
+      <MainLayout>
+        <div className="flex items-center justify-between mb-6">
+          <PageHeader title="Create Event" />
+        </div>
+        <div className="p-6 bg-white rounded-lg shadow">
+          <EventForm mode="create" onSubmit={handleSubmit} />
+        </div>
+      </MainLayout>
+    </>
   );
 }

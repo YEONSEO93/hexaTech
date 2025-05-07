@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Database } from "@/types/supabase";
 
 const STATUS_OPTIONS = ["PENDING", "ANNOUNCED"] as const;
 const CATEGORY_OPTIONS = [
@@ -51,6 +54,30 @@ export default function EventForm({
   onSubmit,
 }: EventFormProps) {
   const [form, setForm] = useState<Partial<EventItem>>(defaultValues);
+  const [venueOptions, setVenueOptions] = useState<
+    { id: number; name: string }[]
+  >([]);
+  const [companyOptions, setCompanyOptions] = useState<
+    { id: number; name: string }[]
+  >([]);
+
+  useEffect(() => {
+    const fetchVenuesAndCompanies = async () => {
+      const supabase = createClientComponentClient<Database>();
+
+      const [{ data: venueData }, { data: companyData }] = await Promise.all([
+        supabase.from("venue").select("id, name").not("name", "is", null),
+        supabase.from("company").select("id, name").not("name", "is", null),
+      ]);
+
+      if (venueData)
+        setVenueOptions(venueData as { id: number; name: string }[]);
+      if (companyData)
+        setCompanyOptions(companyData as { id: number; name: string }[]);
+    };
+
+    fetchVenuesAndCompanies();
+  }, []);
 
   const handleChange = (field: string, value: string | number | null) => {
     setForm({ ...form, [field]: value });
@@ -97,14 +124,48 @@ export default function EventForm({
 
       <div>
         <label className="block font-medium">Venue</label>
-        <input
-          type="text"
-          className="w-full border px-3 py-2 rounded bg-gray-100"
+        <select
+          className="w-full border px-3 py-2 rounded bg-white"
           value={form.venue?.name ?? ""}
-          disabled
-        />
+          onChange={(e) =>
+            setForm({
+              ...form,
+              venue: { name: e.target.value },
+            })
+          }
+        >
+          <option value="" disabled>
+            Select venue
+          </option>
+          {venueOptions.map((venue) => (
+            <option key={venue.id} value={venue.name}>
+              {venue.name}
+            </option>
+          ))}
+        </select>
       </div>
-
+      <div>
+        <label className="block font-medium">Company</label>
+        <select
+          className="w-full border px-3 py-2 rounded bg-white"
+          value={form.company?.name ?? ""}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              company: { name: e.target.value },
+            })
+          }
+        >
+          <option value="" disabled>
+            Select company
+          </option>
+          {companyOptions.map((company) => (
+            <option key={company.id} value={company.name}>
+              {company.name}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block font-medium">Start Date</label>
@@ -190,12 +251,7 @@ export default function EventForm({
         />
       </div>
 
-      <button
-        type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        {mode === "edit" ? "Update" : "Create"}
-      </button>
+      <Button type="submit">{mode === "edit" ? "Update" : "Create"}</Button>
     </form>
   );
 }
