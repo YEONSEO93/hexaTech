@@ -47,15 +47,15 @@ export type Database = {
       }
       event: {
         Row: {
-          category_id: number
+          category_id: number | null
           company_id: number
           details: string | null
           end_date: string | null
           id: number
-          name: string | null
+          name: string
           start_date: string | null
           status: Database["public"]["Enums"]["event_status"] | null
-          subcategory_id: number
+          subcategory_id: number | null
           total_attendee_category:
             | Database["public"]["Enums"]["attendee_bucket"]
             | null
@@ -63,15 +63,15 @@ export type Database = {
           venue_id: number
         }
         Insert: {
-          category_id: number
+          category_id?: number | null
           company_id: number
           details?: string | null
           end_date?: string | null
           id?: number
-          name?: string | null
+          name: string
           start_date?: string | null
           status?: Database["public"]["Enums"]["event_status"] | null
-          subcategory_id: number
+          subcategory_id?: number | null
           total_attendee_category?:
             | Database["public"]["Enums"]["attendee_bucket"]
             | null
@@ -79,15 +79,15 @@ export type Database = {
           venue_id: number
         }
         Update: {
-          category_id?: number
+          category_id?: number | null
           company_id?: number
           details?: string | null
           end_date?: string | null
           id?: number
-          name?: string | null
+          name?: string
           start_date?: string | null
           status?: Database["public"]["Enums"]["event_status"] | null
-          subcategory_id?: number
+          subcategory_id?: number | null
           total_attendee_category?:
             | Database["public"]["Enums"]["attendee_bucket"]
             | null

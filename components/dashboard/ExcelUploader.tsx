@@ -214,13 +214,6 @@ export default function ExcelUploader() {
       {results.length > 0 && (
         <div className="mt-6 w-full">
           <h2 className="text-lg font-semibold mb-2">📊 Upload Summary</h2>
-          {/* <p>Total Rows: {results.length}</p>
-          <p className="text-green-600">
-            ✅ Success: {results.filter((r) => r.success).length}
-          </p>
-          <p className="text-red-600">
-            ❌ Failed: {results.filter((r) => !r.success).length}
-          </p> */}
           <p>Total Rows: {results.length}</p>
           <p className="text-green-600">
             ✅ Success: {results.filter((r) => r.success && !r.skipped).length}
@@ -240,25 +233,6 @@ export default function ExcelUploader() {
                   <th className="border px-2 py-1">Details</th>
                 </tr>
               </thead>
-              {/* <tbody>
-                {results.map((r) => (
-                  <tr key={r.index}>
-                    <td className="border px-2 py-1 text-center">
-                      {r.index + 1}
-                    </td>
-                    <td
-                      className={`border px-2 py-1 text-center ${
-                        r.success ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {r.success ? "✅ Success" : "❌ Failed"}
-                    </td>
-                    <td className="border px-2 py-1 text-red-600">
-                      {r.error || "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody> */}
               <tbody>
                 {results.map((r) => (
                   <tr key={r.index}>
