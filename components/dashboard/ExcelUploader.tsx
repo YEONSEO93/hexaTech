@@ -3,7 +3,8 @@ import { useState } from "react";
 import * as XLSX from "xlsx";
 import { ExcelRow } from "@/types/excel";
 
-// ↵, \n, 공백 등을 제거한 후 기준이 되는 clean header → ExcelRow 필드로 매핑
+// mapping header to ExcelRow field
+// "DATA ENTERED BY (COLLABORATOR)" → "company"
 const headerMap: Record<string, keyof ExcelRow> = {
   "DATA ENTERED BY (COLLABORATOR)": "company",
   "STATUS Please indicate whether the event is Pending Announcement OR Announced":
@@ -26,7 +27,8 @@ const headerMap: Record<string, keyof ExcelRow> = {
     "eventDate",
 };
 
-// 줄바꿈/특수문자 제거해서 헤더를 비교할 수 있도록 정제
+// remove newlines, spaces, and special characters from the header
+// to make it easier to compare
 function cleanKey(key: string): string {
   return key
     .replace(/\n/g, " ")
@@ -51,7 +53,7 @@ const monthNameToNumber: Record<string, string> = {
   DEC: "12",
 };
 
-// 날짜 파싱 함수 (string or excel serial → YYYY-MM-DD)
+// parse excel serial date (string or excel serial → YYYY-MM-DD)
 function parseExcelDate(value: unknown): string | null {
   if (!value) return null;
 
@@ -80,7 +82,12 @@ export default function ExcelUploader() {
   const [data, setData] = useState<ExcelRow[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [results, setResults] = useState<
-    { index: number; success: boolean; error?: string }[]
+    {
+      index: number;
+      success: boolean;
+      skipped?: boolean;
+      error?: string;
+    }[]
   >([]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,11 +118,9 @@ export default function ExcelUploader() {
           const value = row[originalKey];
 
           if (mappedKey) {
-            // 저장해둬서 fallback에서 사용
             if (mappedKey === "eventDate") fallbackDateRaw = value as string;
             if (mappedKey === "eventYear") fallbackYear = value as string;
 
-            // 날짜 필드 처리
             if (mappedKey === "startDate" || mappedKey === "endDate") {
               const parsed = parseExcelDate(value);
               if (parsed) {
@@ -209,24 +214,33 @@ export default function ExcelUploader() {
       {results.length > 0 && (
         <div className="mt-6 w-full">
           <h2 className="text-lg font-semibold mb-2">📊 Upload Summary</h2>
-          <p>Total Rows: {results.length}</p>
+          {/* <p>Total Rows: {results.length}</p>
           <p className="text-green-600">
             ✅ Success: {results.filter((r) => r.success).length}
           </p>
           <p className="text-red-600">
             ❌ Failed: {results.filter((r) => !r.success).length}
+          </p> */}
+          <p>Total Rows: {results.length}</p>
+          <p className="text-green-600">
+            ✅ Success: {results.filter((r) => r.success && !r.skipped).length}
           </p>
-
+          <p className="text-yellow-600">
+            ⚠️ Skipped: {results.filter((r) => r.skipped).length}
+          </p>
+          <p className="text-red-600">
+            ❌ Failed: {results.filter((r) => !r.success && !r.skipped).length}
+          </p>
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full border text-sm">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="border px-2 py-1">Row</th>
                   <th className="border px-2 py-1">Status</th>
-                  <th className="border px-2 py-1">Error</th>
+                  <th className="border px-2 py-1">Details</th>
                 </tr>
               </thead>
-              <tbody>
+              {/* <tbody>
                 {results.map((r) => (
                   <tr key={r.index}>
                     <td className="border px-2 py-1 text-center">
@@ -240,6 +254,33 @@ export default function ExcelUploader() {
                       {r.success ? "✅ Success" : "❌ Failed"}
                     </td>
                     <td className="border px-2 py-1 text-red-600">
+                      {r.error || "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody> */}
+              <tbody>
+                {results.map((r) => (
+                  <tr key={r.index}>
+                    <td className="border px-2 py-1 text-center">
+                      {r.index + 1}
+                    </td>
+                    <td
+                      className={`border px-2 py-1 text-center ${
+                        r.success
+                          ? "text-green-600"
+                          : r.skipped
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {r.success
+                        ? "✅ Success"
+                        : r.skipped
+                        ? "⚠️ Skipped"
+                        : "❌ Failed"}
+                    </td>
+                    <td className="border px-2 py-1 text-gray-800">
                       {r.error || "-"}
                     </td>
                   </tr>

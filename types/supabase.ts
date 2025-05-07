@@ -224,7 +224,7 @@ export type Database = {
           total_attendee_category?: string
           company_name?: string
         }
-        Returns: undefined
+        Returns: Json
       }
     }
     Enums: {

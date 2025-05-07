@@ -61,12 +61,13 @@ export async function POST(req: NextRequest) {
   const results: {
     index: number;
     success: boolean;
+    skipped?: boolean;
     error?: string;
   }[] = [];
 
   for (const [index, row] of rows.entries()) {
     try {
-        const { error } = await supabase.rpc('insert_event_if_not_exists', {
+        const { data, error } = await supabase.rpc('insert_event_if_not_exists', {
             event_title: row.eventTitle,
             start_date: row.startDate,
             venue_name: row.venueName,
@@ -84,16 +85,36 @@ export async function POST(req: NextRequest) {
     ? row.totalAttendeeCategory
     : undefined,
             company_name: row.company,
-        });
+        })as {
+          data: { skipped?: boolean; reason?: string };
+          error: { message: string } | null;};
+        
 
       if (error) {
-        console.error("RPC failed:", error.message);
+        console.error("❌ RPC failed:", error.message);
         results.push({ index, success: false, error: error.message });
         continue;
-      }else {
-        console.log("RPC succeeded:", row.eventTitle);
+      }
+
+      if (data?.skipped) {
+        results.push({
+          index,
+          success: false,
+          skipped: true,
+          error: data.reason ?? "Duplicate row",
+        });
+      } else {
+        console.log("✅ RPC succeeded:", row.eventTitle);
         results.push({ index, success: true });
       }
+      // if (error) {
+      //   console.error("RPC failed:", error.message);
+      //   results.push({ index, success: false, error: error.message });
+      //   continue;
+      // }else {
+      //   console.log("RPC succeeded:", row.eventTitle);
+      //   results.push({ index, success: true });
+      // }
     } catch (err) {
       results.push({
         index,
