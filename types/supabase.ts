@@ -27,44 +27,71 @@ export type Database = {
         }
         Relationships: []
       }
+      company: {
+        Row: {
+          created_at: string | null
+          id: number
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
       event: {
         Row: {
-          category_id: number
+          category_id: number | null
+          company_id: number
           details: string | null
           end_date: string | null
           id: number
-          name: string | null
+          name: string
           start_date: string | null
           status: Database["public"]["Enums"]["event_status"] | null
-          subcategory_id: number
+          subcategory_id: number | null
+          total_attendee_category:
+            | Database["public"]["Enums"]["attendee_bucket"]
+            | null
           total_attendees: number | null
-          user_id: string
           venue_id: number
         }
         Insert: {
-          category_id: number
+          category_id?: number | null
+          company_id: number
           details?: string | null
           end_date?: string | null
           id?: number
-          name?: string | null
+          name: string
           start_date?: string | null
           status?: Database["public"]["Enums"]["event_status"] | null
-          subcategory_id: number
+          subcategory_id?: number | null
+          total_attendee_category?:
+            | Database["public"]["Enums"]["attendee_bucket"]
+            | null
           total_attendees?: number | null
-          user_id: string
           venue_id: number
         }
         Update: {
-          category_id?: number
+          category_id?: number | null
+          company_id?: number
           details?: string | null
           end_date?: string | null
           id?: number
-          name?: string | null
+          name?: string
           start_date?: string | null
           status?: Database["public"]["Enums"]["event_status"] | null
-          subcategory_id?: number
+          subcategory_id?: number | null
+          total_attendee_category?:
+            | Database["public"]["Enums"]["attendee_bucket"]
+            | null
           total_attendees?: number | null
-          user_id?: string
           venue_id?: number
         }
         Relationships: [
@@ -73,6 +100,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "category"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company"
             referencedColumns: ["id"]
           },
           {
@@ -87,39 +121,6 @@ export type Database = {
             columns: ["venue_id"]
             isOneToOne: false
             referencedRelation: "venue"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      event_assignments: {
-        Row: {
-          assigned_at: string | null
-          collaborator_id: string
-          event_id: number
-        }
-        Insert: {
-          assigned_at?: string | null
-          collaborator_id: string
-          event_id: number
-        }
-        Update: {
-          assigned_at?: string | null
-          collaborator_id?: string
-          event_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_assignments_collaborator_id_fkey"
-            columns: ["collaborator_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_assignments_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event"
             referencedColumns: ["id"]
           },
         ]
@@ -142,38 +143,49 @@ export type Database = {
       users: {
         Row: {
           company: string
+          company_id: number | null
           created_at: string
           email: string
           id: string
           must_change_password: boolean | null
-          name: string
+          name: string | null
+          profile_photo: string | null
           role: string
           updated_at: string | null
-          profile_photo: string | null
         }
         Insert: {
           company: string
+          company_id?: number | null
           created_at?: string
           email: string
-          id: string
+          id?: string
           must_change_password?: boolean | null
-          name: string
+          name?: string | null
+          profile_photo?: string | null
           role: string
           updated_at?: string | null
-          profile_photo?: string | null
         }
         Update: {
           company?: string
+          company_id?: number | null
           created_at?: string
           email?: string
           id?: string
           must_change_password?: boolean | null
-          name?: string
+          name?: string | null
+          profile_photo?: string | null
           role?: string
           updated_at?: string | null
-          profile_photo?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       venue: {
         Row: {
@@ -198,25 +210,53 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      insert_event_if_not_exists: {
+        Args: {
+          event_title: string
+          start_date: string
+          venue_name: string
+          status: string
+          end_date?: string
+          total_attendees?: number
+          details?: string
+          category_name?: Database["public"]["Enums"]["category_name"]
+          subcategory_name?: Database["public"]["Enums"]["sub_category_name"]
+          total_attendee_category?: string
+          company_name?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
+      attendee_bucket:
+        | "<500"
+        | "501-1,000"
+        | "1,001-3,000"
+        | "3,001-5,000"
+        | "5,001-10,000"
+        | "10,001-25,000"
+        | "25,001-50,000"
+        | ">50,000"
+        | "INFO ONLY"
       category_name:
-        | "MEGA_EVENT"
-        | "MAJOR_EVENT"
-        | "MASS_PARTICIPATION_EVENT"
-        | "BUSINESS_EVENT"
-        | "CONCERT"
+        | "Mega Event"
+        | "Business Event"
+        | "Concert"
+        | "Mass Participation"
+        | "Major Event"
+        | "Key Cultural Event"
+        | "Trans/Infra Disrupt"
       event_status: "PENDING" | "ANNOUNCED"
-      role: "admin" | "collaborator" | "viewer"
+      role: "ADMIN" | "USER"
       sub_category_name:
-        | "SPORT_OLYMPIC_PARALYMPIC"
-        | "NON_OLYMPIC"
-        | "ARTS_AND_CULTURE"
+        | "Arts & Culture"
+        | "Business Event"
+        | "Lifestyle"
+        | "Music"
+        | "Sport (Non-Olympic / Paralympic)"
+        | "Sport (Olympic / Paralympic)"
         | "STEM"
-        | "LIFESTYLE"
-        | "MUSIC"
-        | "TRANS_INFRA_DISRUPT"
+        | "Trans/Infra Disrupt"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -332,23 +372,37 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      attendee_bucket: [
+        "<500",
+        "501-1,000",
+        "1,001-3,000",
+        "3,001-5,000",
+        "5,001-10,000",
+        "10,001-25,000",
+        "25,001-50,000",
+        ">50,000",
+        "INFO ONLY",
+      ],
       category_name: [
-        "MEGA_EVENT",
-        "MAJOR_EVENT",
-        "MASS_PARTICIPATION_EVENT",
-        "BUSINESS_EVENT",
-        "CONCERT",
+        "Mega Event",
+        "Business Event",
+        "Concert",
+        "Mass Participation",
+        "Major Event",
+        "Key Cultural Event",
+        "Trans/Infra Disrupt",
       ],
       event_status: ["PENDING", "ANNOUNCED"],
-      role: ["admin", "collaborator", "viewer"],
+      role: ["ADMIN", "USER"],
       sub_category_name: [
-        "SPORT_OLYMPIC_PARALYMPIC",
-        "NON_OLYMPIC",
-        "ARTS_AND_CULTURE",
+        "Arts & Culture",
+        "Business Event",
+        "Lifestyle",
+        "Music",
+        "Sport (Non-Olympic / Paralympic)",
+        "Sport (Olympic / Paralympic)",
         "STEM",
-        "LIFESTYLE",
-        "MUSIC",
-        "TRANS_INFRA_DISRUPT",
+        "Trans/Infra Disrupt",
       ],
     },
   },

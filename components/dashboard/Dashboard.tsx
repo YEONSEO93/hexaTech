@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import ExcelUploader from "./ExcelUploader";
 import { PageHeader } from "../PageHeader";
 
 export function Dashboard() {
@@ -15,8 +16,7 @@ export function Dashboard() {
           data: { user: authUser },
         } = await supabase.auth.getUser();
 
-        setUser(authUser)
-
+        setUser(authUser);
       } catch (error) {
         console.error("Error in Dashboard:", error);
         setError(error instanceof Error ? error.message : "An error occurred");
@@ -49,6 +49,7 @@ export function Dashboard() {
         {user?.user_metadata?.role && (
           <p className="text-gray-600">Role: {user.user_metadata.role}</p>
         )}
+        <ExcelUploader />
       </div>
     </>
   );
