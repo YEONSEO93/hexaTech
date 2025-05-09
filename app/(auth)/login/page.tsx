@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { signInWithEmail } from "@/lib/supabase/auth";
+import PasswordInput from "@/components/ui/password-input/password-input";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -30,7 +31,7 @@ const LoginPage = () => {
       }
 
       const { data: signInData, error: signInError } = await signInWithEmail(email.trim(), password.trim());
-      
+
       if (signInError) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const message = (signInError as any)?.message || 'Failed to sign in. Please check your credentials.';
@@ -40,7 +41,7 @@ const LoginPage = () => {
       if (!signInData?.user) {
         throw new Error('Login failed: No user data returned.');
       }
-      
+
       const userRole = signInData.user.role;
       console.log(`Login successful. Role from signInWithEmail: ${userRole}`);
 
@@ -103,15 +104,7 @@ const LoginPage = () => {
                   placeholder="Enter your email"
                   required
                 />
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  label="Password"
-                  placeholder="Enter your password"
-                  helperText="It must be a combination of minimum 8 letters, numbers, and symbols."
-                  required
-                />
+                <PasswordInput id="password" name="password" placeholder="Enter your password" required />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <input
