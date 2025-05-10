@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/types/supabase";
+import { useUser } from "@/app/context/UserContext"; // get user info from context
 
 const STATUS_OPTIONS = ["PENDING", "ANNOUNCED"] as const;
 
@@ -23,10 +24,23 @@ export type EventItem = {
   total_attendees?: number | null;
   total_attendee_category?: string | null;
   company_name: string;
-  venue_id: number;
   company_id: number;
+  company: {
+    id: number;
+    name: string;
+  };
+  venue_id: number;
+  venue: {
+    name: string;
+  };
   category_id?: number;
+  category?: {
+    name: string;
+  };
   subcategory_id?: number;
+  sub_category?: {
+    name: string;
+  };
   details?: string | null;
 };
 
@@ -35,8 +49,19 @@ export default function EventForm({
   defaultValues = {},
   onSubmit,
 }: EventFormProps) {
+  const { userRole, isLoading } = useUser();
+
+  console.log("📦 defaultValues:", userRole);
+  console.log("📦 defaultValues:", isLoading);
+
   console.log("📦 defaultValues:", defaultValues);
-  const [form, setForm] = useState<Partial<EventItem>>(defaultValues);
+
+  // const [form, setForm] = useState<Partial<EventItem>>(defaultValues);
+  const [form, setForm] = useState<Partial<EventItem>>({}); // ✅ Start empty form
+
+  const [companyOptions, setCompanyOptions] = useState<
+    { id: number; name: string }[]
+  >([]);
   const [venueOptions, setVenueOptions] = useState<
     { id: number; name: string }[]
   >([]);
@@ -66,19 +91,68 @@ export default function EventForm({
           .not("name", "is", null),
       ]);
 
+      if (companyData) console.log("📦 companyData:", companyData);
+      setCompanyOptions(companyData as { id: number; name: string }[]);
+
       if (venueData)
         setVenueOptions(venueData as { id: number; name: string }[]);
-      if (companyData)
-        if (categoryData)
-          setCategoryOptions(categoryData as { id: number; name: string }[]);
+      console.log("📦 venueData:", venueData);
+
+      if (categoryData)
+        setCategoryOptions(categoryData as { id: number; name: string }[]);
+      console.log("📦 categoryData:", categoryData);
       if (subcategoryData)
         setSubcategoryOptions(
           subcategoryData as { id: number; name: string }[]
         );
+      console.log("📦 subcategoryData:", subcategoryData);
     };
 
     fetchAllOptions();
   }, []);
+
+  // ✅ Fill in form after dropdown options + defaultValues are ready
+  useEffect(() => {
+    if (
+      defaultValues &&
+      companyOptions.length &&
+      venueOptions.length &&
+      categoryOptions.length &&
+      subcategoryOptions.length
+    ) {
+      const companyMatch = companyOptions.find(
+        (c) => c.name === defaultValues.company?.name
+      );
+      console.log("companyMatch:", companyMatch);
+      const venueMatch = venueOptions.find(
+        (v) => v.name === defaultValues.venue?.name
+      );
+      const categoryMatch = categoryOptions.find(
+        (c) => c.name === defaultValues.category?.name
+      );
+      const subcategoryMatch = subcategoryOptions.find(
+        (s) => s.name === defaultValues.sub_category?.name
+      );
+
+      setForm({
+        ...defaultValues,
+        company_id: companyMatch?.id ?? defaultValues.company_id,
+        company_name: companyMatch?.name ?? defaultValues.company_name,
+        venue_id: venueMatch?.id ?? defaultValues.venue_id,
+        category_id: categoryMatch?.id ?? defaultValues.category_id,
+        subcategory_id: subcategoryMatch?.id ?? defaultValues.subcategory_id,
+      });
+    } else if (mode === "create") {
+      setForm(defaultValues); // ✅ For create mode
+    }
+  }, [
+    defaultValues,
+    companyOptions,
+    venueOptions,
+    categoryOptions,
+    subcategoryOptions,
+    mode,
+  ]);
 
   const handleChange = (field: string, value: string | number | null) => {
     setForm({ ...form, [field]: value });
@@ -117,7 +191,7 @@ export default function EventForm({
         <label className="block font-medium">Venue</label>
         <select
           className="w-full border px-3 py-2 rounded bg-white"
-          value={form.venue_id ?? ""}
+          value={form.venue_id ?? ""} // ✅ Fixed here: was form.name
           onChange={(e) => handleChange("venue_id", Number(e.target.value))}
         >
           <option value="" disabled>
@@ -130,8 +204,18 @@ export default function EventForm({
           ))}
         </select>
       </div>
+      {/* 👇 디버깅 콘솔 찍기 */}
+      {(() => {
+        const selectedVenue = venueOptions.find((v) => v.id === form.venue_id);
+        console.log("🎯 form.venue_id:", form.venue_id);
+        // console.log("🎯 form.venue.name:", form.venue.name);
+        console.log("🎯 form:", form);
+        console.log("🎯 venueOptions:", venueOptions);
+        console.log("🎯 selectedVenue:", selectedVenue);
+        return null;
+      })()}
 
-      {defaultValues.company_name && (
+      {/* {defaultValues.company_name && (
         <div>
           <label className="block font-medium">Company</label>
           <input
@@ -141,7 +225,93 @@ export default function EventForm({
             readOnly
           />
         </div>
+      )} */}
+
+      {/* {userRole === "admin" ? (
+        <div>
+          <label className="block font-medium">Company</label>
+          <select
+            className="w-full border px-3 py-2 rounded bg-white"
+            value={form.company_id ?? ""}
+            onChange={(e) => handleChange("company_id", Number(e.target.value))}
+          >
+            <option value="" disabled>
+              Select company
+            </option>
+            {companyOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : defaultValues.company_name ? (
+        <div>
+          <label className="block font-medium">Company</label>
+          <input
+            type="text"
+            className="w-full border px-3 py-2 rounded bg-gray-100"
+            value={defaultValues.company_name}
+            readOnly
+          />
+        </div>
+      ) : null} */}
+
+      {/* ) : defaultValues.company_name ? (
+        <div>
+          <label className="block font-medium">Company</label>
+          <input
+            type="text"
+            className="w-full border px-3 py-2 rounded bg-gray-100"
+            value={defaultValues.company_name}
+            readOnly
+          />
+        </div>
+      ) : null} */}
+
+      {userRole === "admin" && (
+        <div>
+          <label className="block font-medium">Company</label>
+          <select
+            className="w-full border px-3 py-2 rounded bg-white"
+            value={form.company_id ?? ""}
+            onChange={(e) => handleChange("company_id", Number(e.target.value))}
+          >
+            <option value="" disabled>
+              Select company
+            </option>
+            {companyOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
       )}
+
+      {userRole !== "admin" && defaultValues.company?.name && (
+        <div>
+          <label className="block font-medium">Company</label>
+          <input
+            type="text"
+            className="w-full border px-3 py-2 rounded bg-gray-100"
+            value={defaultValues.company.name}
+            readOnly
+          />
+        </div>
+      )}
+
+      {/* 👇 디버깅 콘솔 찍기 */}
+      {(() => {
+        console.log("🧾 form.company_id:", form.company_id);
+        console.log("🏢 form.company_name:", form.company_name);
+        console.log(
+          "🏬 defaultValues.company_name:",
+          defaultValues.company_name
+        );
+        console.log("🏢 companyOptions:", companyOptions);
+        return null;
+      })()}
 
       <div className="grid grid-cols-2 gap-4">
         <div>

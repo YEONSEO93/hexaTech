@@ -54,7 +54,7 @@ export type Database = {
           id: number
           name: string
           start_date: string | null
-          status: Database["public"]["Enums"]["event_status"] | null
+          status: Database["public"]["Enums"]["event_status"]
           subcategory_id: number | null
           total_attendee_category:
             | Database["public"]["Enums"]["attendee_bucket"]
@@ -70,7 +70,7 @@ export type Database = {
           id?: number
           name: string
           start_date?: string | null
-          status?: Database["public"]["Enums"]["event_status"] | null
+          status: Database["public"]["Enums"]["event_status"]
           subcategory_id?: number | null
           total_attendee_category?:
             | Database["public"]["Enums"]["attendee_bucket"]
@@ -86,7 +86,7 @@ export type Database = {
           id?: number
           name?: string
           start_date?: string | null
-          status?: Database["public"]["Enums"]["event_status"] | null
+          status?: Database["public"]["Enums"]["event_status"]
           subcategory_id?: number | null
           total_attendee_category?:
             | Database["public"]["Enums"]["attendee_bucket"]
@@ -191,17 +191,17 @@ export type Database = {
         Row: {
           id: number
           location: string | null
-          name: string | null
+          name: string
         }
         Insert: {
           id?: number
           location?: string | null
-          name?: string | null
+          name: string
         }
         Update: {
           id?: number
           location?: string | null
-          name?: string | null
+          name?: string
         }
         Relationships: []
       }

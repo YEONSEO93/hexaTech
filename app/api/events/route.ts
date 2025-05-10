@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
 
 // GET /api/events
-// Fetches all events
+// Fetches all events -> pagination (limit, offset)
 export async function GET() {
   const { data, error } = await supabase
     .from('event')

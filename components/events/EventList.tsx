@@ -24,7 +24,6 @@ export default function EventList() {
   function formatDate(dateString: string): string {
     const date = new Date(dateString);
     const formattedDate = new Intl.DateTimeFormat("en-AU").format(date);
-    console.log("Formatted date:", formattedDate);
 
     return formattedDate;
   }
