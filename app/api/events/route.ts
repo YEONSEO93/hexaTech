@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
 // GET /api/events
 // Fetches all events (admin , viewer)
 // Fetches only user's company events (collaborator)
+// Fetches events by company_id (admin, viewer)
 export async function GET(req: NextRequest) {
   const supabase = createRouteHandlerClient<Database>({ cookies });
 
