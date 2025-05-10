@@ -204,7 +204,6 @@ export default function EventForm({
           ))}
         </select>
       </div>
-      {/* 👇 디버깅 콘솔 찍기 */}
       {(() => {
         const selectedVenue = venueOptions.find((v) => v.id === form.venue_id);
         console.log("🎯 form.venue_id:", form.venue_id);
@@ -214,60 +213,6 @@ export default function EventForm({
         console.log("🎯 selectedVenue:", selectedVenue);
         return null;
       })()}
-
-      {/* {defaultValues.company_name && (
-        <div>
-          <label className="block font-medium">Company</label>
-          <input
-            type="text"
-            className="w-full border px-3 py-2 rounded bg-gray-100"
-            value={defaultValues.company_name}
-            readOnly
-          />
-        </div>
-      )} */}
-
-      {/* {userRole === "admin" ? (
-        <div>
-          <label className="block font-medium">Company</label>
-          <select
-            className="w-full border px-3 py-2 rounded bg-white"
-            value={form.company_id ?? ""}
-            onChange={(e) => handleChange("company_id", Number(e.target.value))}
-          >
-            <option value="" disabled>
-              Select company
-            </option>
-            {companyOptions.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : defaultValues.company_name ? (
-        <div>
-          <label className="block font-medium">Company</label>
-          <input
-            type="text"
-            className="w-full border px-3 py-2 rounded bg-gray-100"
-            value={defaultValues.company_name}
-            readOnly
-          />
-        </div>
-      ) : null} */}
-
-      {/* ) : defaultValues.company_name ? (
-        <div>
-          <label className="block font-medium">Company</label>
-          <input
-            type="text"
-            className="w-full border px-3 py-2 rounded bg-gray-100"
-            value={defaultValues.company_name}
-            readOnly
-          />
-        </div>
-      ) : null} */}
 
       {userRole === "admin" && (
         <div>
@@ -301,7 +246,6 @@ export default function EventForm({
         </div>
       )}
 
-      {/* 👇 디버깅 콘솔 찍기 */}
       {(() => {
         console.log("🧾 form.company_id:", form.company_id);
         console.log("🏢 form.company_name:", form.company_name);
