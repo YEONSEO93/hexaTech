@@ -56,7 +56,6 @@ export default function EventForm({
 
   console.log("📦 defaultValues:", defaultValues);
 
-  // const [form, setForm] = useState<Partial<EventItem>>(defaultValues);
   const [form, setForm] = useState<Partial<EventItem>>({}); // ✅ Start empty form
 
   const [companyOptions, setCompanyOptions] = useState<

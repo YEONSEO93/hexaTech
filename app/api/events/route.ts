@@ -69,6 +69,7 @@ export async function GET(req: NextRequest) {
   const searchParams = new URL(req.url).searchParams;
   const limit = Number(searchParams.get("limit") ?? "10") || 10;
   const offset = Number(searchParams.get("offset") ?? "0") || 0;
+  const filterCompanyId = searchParams.get("company_id");
 
   const { data: userData, error: userError } = await supabase
     .from("users")
@@ -107,8 +108,9 @@ export async function GET(req: NextRequest) {
     if (!company_id) {
       return NextResponse.json({ error: "Missing company_id" }, { status: 400 });
     }
-
     query = query.eq("company_id", company_id);
+  } else if (filterCompanyId) {
+    query = query.eq("company_id", Number(filterCompanyId));
   }
 
   const { data, count, error } = await query;

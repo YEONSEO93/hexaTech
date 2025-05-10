@@ -29,12 +29,16 @@ export default function EventList() {
   const router = useRouter();
 
   // // test
-  // type UserRole = "admin" | "viewer" | "manager";
-  // const userRole: UserRole = "viewer";
+  // const userRole = "admin" as "admin" | "viewer" | "collaborator";
 
   const [events, setEvents] = useState<EventItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
+
+  const [companyOptions, setCompanyOptions] = useState<
+    { id: number; name: string }[]
+  >([]);
+  const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,9 +72,20 @@ export default function EventList() {
   };
 
   useEffect(() => {
-    const offset = page * PAGE_SIZE;
+    fetch("/api/companies")
+      .then((res) => res.json())
+      .then((data) => setCompanyOptions(data));
+  }, []);
 
-    fetch(`/api/events?limit=${PAGE_SIZE}&offset=${offset}`)
+  useEffect(() => {
+    const offset = page * PAGE_SIZE;
+    let url = `/api/events?limit=${PAGE_SIZE}&offset=${offset}`;
+
+    if (selectedCompany !== null) {
+      url += `&company_id=${selectedCompany}`;
+    }
+
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
         setEvents(data.data);
@@ -82,7 +97,7 @@ export default function EventList() {
         setError("Failed to load events");
         setLoading(false);
       });
-  }, [page]); // ✅ refresh the data when the page changes
+  }, [page, selectedCompany]); // ✅ refresh the data when the page changes
 
   const columns: BaseColumnProps<EventItem>[] = [
     {
@@ -174,6 +189,27 @@ export default function EventList() {
 
   return (
     <div className="p-4 bg-white rounded-lg shadow">
+      {userRole !== "collaborator" && (
+        <div>
+          <label className="block mb-1 font-medium">Filter by Company</label>
+          <select
+            value={selectedCompany ?? ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSelectedCompany(val ? Number(val) : null);
+              setPage(0);
+            }}
+            className="w-full border rounded px-3 py-2 bg-white"
+          >
+            <option value="">All Companies</option>
+            {companyOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <BaseTable value={events} columns={columns} />
       <Pagination
         page={page}

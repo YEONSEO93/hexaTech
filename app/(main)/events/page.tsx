@@ -11,8 +11,7 @@ export default function EventsPage() {
   const { userRole } = useUser();
 
   // // test
-  // type UserRole = "admin" | "viewer" | "manager";
-  // const userRole: UserRole = "viewer";
+  // const userRole = "admin" as "admin" | "viewer" | "collaborator";
 
   const router = useRouter();
 

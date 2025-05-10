@@ -8,34 +8,6 @@ import EventForm, { EventItem } from "@/components/events/EventForm";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/types/supabase";
 
-// export default function CreateEventPage() {
-//   const router = useRouter();
-
-//   const handleSubmit = async (form: Partial<EventItem>) => {
-//     const res = await fetch("/api/events", {
-//       method: "POST",
-//       body: JSON.stringify(form),
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//     });
-
-//     if (res.ok) router.push("/events");
-//     else alert("Failed to create event");
-//   };
-
-//   return (
-//     <>
-//       <div className="flex items-center justify-between mb-6">
-//         <PageHeader title="Create Event" />
-//       </div>
-//       <div className="p-6 bg-white rounded-lg shadow">
-//         <EventForm mode="create" onSubmit={handleSubmit} />
-//       </div>
-//     </>
-//   );
-// }
-
 export default function CreateEventPage() {
   const router = useRouter();
   const supabase = createClientComponentClient<Database>();
@@ -57,7 +29,6 @@ export default function CreateEventPage() {
 
       const { data: userRecord, error: userError } = await supabase
         .from("users")
-        // .select("company_id")
         .select("company_id, company ( name )")
         .eq("id", user.id)
         .single();
