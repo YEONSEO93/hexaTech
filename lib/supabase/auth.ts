@@ -151,3 +151,20 @@ export const getCurrentUser = async (): Promise<AuthResponse> => {
     return { success: false, error: 'Failed to get current user' };
   }
 };
+
+
+export const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const supabase = createClientComponentClient<Database>();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return { success: false, error: 'Failed to reset password' };
+  }
+};
