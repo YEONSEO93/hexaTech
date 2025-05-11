@@ -3,6 +3,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/client";
 
+async function getUserAndRole() {
+  const supabase = createAdminClient();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { error: "Unauthorized", role: null };
+  }
+
+  const { data: userRecord, error: roleError } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (roleError || !userRecord?.role) {
+    return { error: "Role not found", role: null };
+  }
+
+  return { role: userRecord.role, error: null };
+}
+
+
 // GET /api/events/:id
 // Fetches a single event by ID
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
@@ -39,6 +61,12 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+
+  const { role, error: roleError } = await getUserAndRole();
+  if (roleError || role === "viewer") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 }); // ✅ block viewer
+  }
+
   const supabase = createAdminClient();
   const eventIdRaw = params.id;
   const payload = await req.json();
@@ -84,6 +112,12 @@ export async function DELETE(
     _: NextRequest,
     { params }: { params: { id: string } }
   ) {
+
+    const { role, error: roleError } = await getUserAndRole();
+    if (roleError || role === "viewer") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 }); 
+    }
+
     const supabase = createAdminClient();
     const eventIdRaw = params.id;
   

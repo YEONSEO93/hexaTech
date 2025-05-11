@@ -6,6 +6,7 @@ import { PageHeader } from "../PageHeader";
 
 export function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClientComponentClient();
 
@@ -16,7 +17,25 @@ export function Dashboard() {
           data: { user: authUser },
         } = await supabase.auth.getUser();
 
+        if (!authUser) {
+          setError("User not found");
+          return;
+        }
+
         setUser(authUser);
+
+        const { data: userRecord, error: roleError } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", authUser.id)
+          .single();
+
+        if (roleError || !userRecord?.role) {
+          setError("Role not found");
+          return;
+        }
+
+        setRole(userRecord.role);
       } catch (error) {
         console.error("Error in Dashboard:", error);
         setError(error instanceof Error ? error.message : "An error occurred");
@@ -46,9 +65,7 @@ export function Dashboard() {
             Hi {user?.email || "Not logged in"}
           </h2>
         )}
-        {user?.user_metadata?.role && (
-          <p className="text-gray-600">Role: {user.user_metadata.role}</p>
-        )}
+        {role && <p className="text-gray-600">Role: {role}</p>}
         <ExcelUploader />
       </div>
     </>

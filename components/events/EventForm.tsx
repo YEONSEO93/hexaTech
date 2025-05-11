@@ -56,7 +56,6 @@ export default function EventForm({
 
   console.log("📦 defaultValues:", defaultValues);
 
-  // const [form, setForm] = useState<Partial<EventItem>>(defaultValues);
   const [form, setForm] = useState<Partial<EventItem>>({}); // ✅ Start empty form
 
   const [companyOptions, setCompanyOptions] = useState<
@@ -205,105 +204,8 @@ export default function EventForm({
           ))}
         </select>
       </div>
-      {/* 👇 디버깅 콘솔 찍기 */}
-      {(() => {
-        const selectedVenue = venueOptions.find((v) => v.id === form.venue_id);
-        console.log("🎯 form.venue_id:", form.venue_id);
-        // console.log("🎯 form.venue.name:", form.venue.name);
-        console.log("🎯 form:", form);
-        console.log("🎯 venueOptions:", venueOptions);
-        console.log("🎯 selectedVenue:", selectedVenue);
-        return null;
-      })()}
-
-      {/* {defaultValues.company_name && (
-        <div>
-          <label className="block font-medium">Company</label>
-          <input
-            type="text"
-            className="w-full border px-3 py-2 rounded bg-gray-100"
-            value={defaultValues.company_name}
-            readOnly
-          />
-        </div>
-      )} */}
-
-      {/* {userRole === "admin" ? (
-        <div>
-          <label className="block font-medium">Company</label>
-          <select
-            className="w-full border px-3 py-2 rounded bg-white"
-            value={form.company_id ?? ""}
-            onChange={(e) => handleChange("company_id", Number(e.target.value))}
-          >
-            <option value="" disabled>
-              Select company
-            </option>
-            {companyOptions.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : defaultValues.company_name ? (
-        <div>
-          <label className="block font-medium">Company</label>
-          <input
-            type="text"
-            className="w-full border px-3 py-2 rounded bg-gray-100"
-            value={defaultValues.company_name}
-            readOnly
-          />
-        </div>
-      ) : null} */}
-
-      {/* ) : defaultValues.company_name ? (
-        <div>
-          <label className="block font-medium">Company</label>
-          <input
-            type="text"
-            className="w-full border px-3 py-2 rounded bg-gray-100"
-            value={defaultValues.company_name}
-            readOnly
-          />
-        </div>
-      ) : null} */}
-
-      {/* {userRole === "admin" && (
-        <div>
-          <label className="block font-medium">Company</label>
-          <select
-            className="w-full border px-3 py-2 rounded bg-white"
-            value={form.company_id ?? ""}
-            onChange={(e) => handleChange("company_id", Number(e.target.value))}
-          >
-            <option value="" disabled>
-              Select company
-            </option>
-            {companyOptions.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {userRole !== "admin" && defaultValues.company?.name && (
-        <div>
-          <label className="block font-medium">Company</label>
-          <input
-            type="text"
-            className="w-full border px-3 py-2 rounded bg-gray-100"
-            value={defaultValues.company.name}
-            readOnly
-          />
-        </div>
-      )} */}
 
       {userRole === "admin" ? (
-        // ✅ Admin은 회사 선택 드롭다운 제공
         <div>
           <label className="block font-medium">Company</label>
           <select
@@ -322,7 +224,6 @@ export default function EventForm({
           </select>
         </div>
       ) : form.company_id ? (
-        // ✅ Admin이 아닐 경우: company_id로 name을 찾아서 읽기 전용 input으로 표시
         <div>
           <label className="block font-medium">Company</label>
           <input
@@ -335,19 +236,6 @@ export default function EventForm({
           />
         </div>
       ) : null}
-
-      {/* 👇 디버깅 콘솔 찍기 */}
-      {(() => {
-        console.log("🧾 userRole:", userRole);
-        console.log("🧾 form.company_id:", form.company_id);
-        console.log("🏢 form.company_name:", form.company_name);
-        console.log(
-          "🏬 defaultValues.company_name:",
-          defaultValues.company_name
-        );
-        console.log("🏢 companyOptions:", companyOptions);
-        return null;
-      })()}
 
       <div className="grid grid-cols-2 gap-4">
         <div>
