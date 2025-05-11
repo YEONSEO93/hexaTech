@@ -50,6 +50,22 @@ export default function EventList() {
     return formattedDate;
   }
 
+  const fetchEvents = async () => {
+    setLoading(true);
+    const offset = page * PAGE_SIZE;
+
+    const res = await fetch(`/api/events?limit=${PAGE_SIZE}&offset=${offset}`);
+    const data = await res.json();
+
+    setEvents(data.data);
+    setTotal(data.total);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [page]);
+
   const handleDelete = async (id: number) => {
     const confirm = window.confirm(
       "Are you sure you want to delete this event?"
@@ -64,7 +80,7 @@ export default function EventList() {
       if (!res.ok) throw new Error("Failed to delete");
 
       alert("Event deleted successfully.");
-      router.refresh?.();
+      await fetchEvents();
     } catch (err) {
       alert("Error deleting event.");
       console.error(err);

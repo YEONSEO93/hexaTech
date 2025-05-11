@@ -22,17 +22,96 @@ export default function EditEventPage() {
       .then((data) => setEvent(data));
   }, [id]);
 
-  const handleSubmit = async (form: Partial<EventItem>) => {
-    const res = await fetch(`/api/events/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(form),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+  // const handleSubmit = async (form: Partial<EventItem>) => {
+  //   console.log("📤 전달된 formData:", form);
+  //   const res = await fetch(`/api/events/${id}`, {
+  //     method: "PATCH",
+  //     body: JSON.stringify(form),
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //   });
 
-    if (res.ok) router.push("/events");
-    else alert("Failed to update event");
+  //   if (res.ok) router.push("/events");
+  //   else alert("Failed to update event");
+  // };
+
+  // const handleSubmit = async (form: Partial<EventItem>) => {
+  //   try {
+  //     console.log("📤 전달된 formData:", form);
+
+  //     const res = await fetch(`/api/events/${id}`, {
+  //       method: "PATCH",
+  //       body: JSON.stringify(form),
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+
+  //     const result = await res.json(); // 여기서도 오류 날 수 있음
+  //     console.log("📥 API 응답:", result);
+
+  //     if (res.ok) {
+  //       router.push("/events");
+  //     } else {
+  //       alert("❌ Failed to update event");
+  //     }
+  //   } catch (err) {
+  //     console.error("❗fetch 중 에러 발생:", err);
+  //     alert("❌ 요청 중 오류가 발생했습니다");
+  //   }
+  // };
+
+  const handleSubmit = async (form: Partial<EventItem>) => {
+    try {
+      const {
+        name,
+        start_date,
+        end_date,
+        total_attendees,
+        total_attendee_category,
+        details,
+        status,
+        venue_id,
+        company_id,
+        category_id,
+        subcategory_id,
+      } = form;
+
+      const payload = {
+        name,
+        start_date,
+        end_date,
+        total_attendees,
+        total_attendee_category,
+        details,
+        status,
+        venue_id,
+        company_id,
+        category_id,
+        subcategory_id,
+      };
+
+      const res = await fetch(`/api/events/${form.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await res.json();
+      console.log("📥 API 응답:", result);
+
+      if (!res.ok) {
+        alert(`업데이트 실패: ${result.error?.message || "Unknown error"}`);
+      } else {
+        router.push("/events");
+      }
+    } catch (err) {
+      console.error("❗ 네트워크 에러:", err);
+      alert("요청 중 오류 발생");
+    }
   };
 
   if (!event) return <p>Loading...</p>;
