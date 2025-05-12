@@ -16,10 +16,12 @@ type UserData = Pick<
   | "name"
   | "role"
   | "created_at"
-  | "company"
+  | "company_id"
   | "updated_at"
   | "profile_photo"
->;
+> & {
+  company: { id: number; name: string } | null;
+};
 
 export default function UsersPage() {
   const router = useRouter();
@@ -111,7 +113,11 @@ export default function UsersPage() {
     { field: "role", header: "Role" },
     { field: "created_at", header: "Created At" },
     { field: "updated_at", header: "Updated At" },
-    { field: "company", header: "Company" },
+    {
+      field: "company",
+      header: "Company",
+      body: (rowData) => <span>{rowData.company?.name || "N/A"}</span>,
+    },
     {
       field: "id",
       header: "Actions",

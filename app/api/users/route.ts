@@ -12,7 +12,10 @@ const inviteUserSchema = z.object({
   role: z.enum(['admin', 'collaborator', 'viewer'], {
     errorMap: () => ({ message: "Invalid role provided. Must be 'admin', 'collaborator', or 'viewer'." }) 
   }),
-  company: z.string().min(1, { message: "Company is required and cannot be empty" }),
+  company_id: z.number({
+    required_error: "Company ID is required",
+    invalid_type_error: "Company ID must be a number"
+  }),
   profilePhoto: z.string().optional(),
   password: z.string().min(6, { message: "Password must be at least 6 characters long" }).optional()
 });
@@ -33,7 +36,16 @@ export async function GET(request: NextRequest) {
 
     const { data: users, error: fetchError } = await supabaseAdmin
         .from('users')
-        .select('id, name, email, role, company, created_at, profile_photo');
+        .select(`
+          id, 
+          name, 
+          email, 
+          role, 
+          created_at, 
+          profile_photo,
+          company_id,
+          company:company(id, name)
+        `);
 
     if (fetchError) {
         console.error("Error fetching users:", fetchError);
@@ -82,7 +94,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request body. Expected JSON.' }, { status: 400 });
     }
 
-    const { name, email, role, company, profilePhoto, password } = parsedBody;
+    const { name, email, role, company_id, profilePhoto, password } = parsedBody;
 
     const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       email,
@@ -116,7 +128,7 @@ export async function POST(request: NextRequest) {
       email: invitedUser.email!, 
       name: name, 
       role: role,
-      company: company,
+      company_id: company_id,
       profile_photo: profilePhoto,
       must_change_password: true 
     };
