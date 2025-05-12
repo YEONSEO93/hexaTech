@@ -49,7 +49,7 @@ export async function middleware(request: NextRequest) {
     if (userError || !user) {
       console.error('Authentication error:', userError);
       if (!isPathInRoutes(pathname, ROUTES.AUTH)) {
-        return createRedirectResponse(request, '/login', { error: userError?.message || "User not found!" });
+        return createRedirectResponse(request, '/login');
       }
       return res;
     }
