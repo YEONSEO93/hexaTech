@@ -8,7 +8,7 @@ import BaseTable, {
   BaseColumnProps,
 } from "@/components/ui/base-table/base-table";
 import { Database } from "@/types/supabase";
-import { RoleBasedRender } from "@/components/RoleBasedRender";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 type UserData = Pick<
   Database["public"]["Tables"]["users"]["Row"],
@@ -25,6 +25,7 @@ type UserData = Pick<
 
 export default function UsersPage() {
   const router = useRouter();
+  const { isAdmin } = useAuth();
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -121,16 +122,15 @@ export default function UsersPage() {
     {
       field: "id",
       header: "Actions",
-      body: (rowData) => (
-        <RoleBasedRender allowedRoles={["admin"]}>
+      body: (rowData) =>
+        isAdmin ? (
           <Button
             size="sm"
             onClick={() => router.push(`/users/${rowData.id}/edit`)}
           >
             Edit
           </Button>
-        </RoleBasedRender>
-      ),
+        ) : null,
       style: { width: "auto", textAlign: "center" },
     },
   ];
@@ -139,7 +139,7 @@ export default function UsersPage() {
     <>
       <div className="flex items-center justify-between">
         <PageHeader title="User Management" />
-        <RoleBasedRender allowedRoles={["admin"]}>
+        {isAdmin && (
           <div className="px-8 py-4">
             <Button
               size="sm"
@@ -149,7 +149,7 @@ export default function UsersPage() {
               CREATE USER
             </Button>
           </div>
-        </RoleBasedRender>
+        )}
       </div>
       <div className="p-8">
         {error && (
