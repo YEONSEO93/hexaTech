@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import ExcelUploader from "./ExcelUploader";
-import { PageHeader } from "../PageHeader";
 
 export function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -57,8 +56,6 @@ export function Dashboard() {
 
   return (
     <>
-      <PageHeader title="Dashboard" />
-
       <div className="p-6 bg-white rounded-lg shadow">
         {user?.email && (
           <h2 className="text-3xl font-bold">

@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/UserContext";
+import { Dashboard } from "@/components/dashboard/Dashboard";
 
 export default function EventsPage() {
   const { userRole } = useUser();
@@ -31,9 +32,16 @@ export default function EventsPage() {
           )}
         </div>
       </div>
-      <div className="p-6 bg-white rounded-lg shadow">
+      <div className="p-6 mb-6 bg-white rounded-lg shadow">
         <EventList />
       </div>
+
+      {/* Dashboard section - only visible for admin */}
+      {userRole === "admin" && (
+        <div className="p-6 bg-white rounded-lg shadow">
+          <Dashboard />
+        </div>
+      )}
     </>
   );
 }
