@@ -19,7 +19,7 @@ const defaultNavigation = [
     href: "/events",
     roles: ["admin", "collaborator", "viewer"],
   },
-  { name: "User Management", href: "/users", roles: ["admin", "viewer"] },
+  { name: "User Management", href: "/users", roles: ["admin"] },
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
