@@ -310,32 +310,6 @@ export default function BaseTable<T extends Record<string, unknown>>(props: Base
           />
         );
       })}
-      <Column
-        headerStyle={{ width: "1rem" }}
-        bodyStyle={{ padding: ".5rem" }}
-        body={(rowData: T) => (
-          <Button
-            icon="pi pi-pencil"
-            text
-            rounded
-            className="opacity-60"
-            onClick={() => onEdit(rowData)}
-          />
-        )}
-      ></Column>
-      <Column
-        headerStyle={{ width: "1rem" }}
-        bodyStyle={{ padding: ".5rem" }}
-        body={(rowData: T) => (
-          <Button
-            icon="pi pi-trash"
-            text
-            rounded
-            severity="danger"
-            onClick={() => onDelete(rowData)}
-          />
-        )}
-      ></Column>
     </DataTable>
   );
 }
