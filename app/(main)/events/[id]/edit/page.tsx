@@ -23,16 +23,55 @@ export default function EditEventPage() {
   }, [id]);
 
   const handleSubmit = async (form: Partial<EventItem>) => {
-    const res = await fetch(`/api/events/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(form),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const {
+        name,
+        start_date,
+        end_date,
+        total_attendees,
+        total_attendee_category,
+        details,
+        status,
+        venue_id,
+        company_id,
+        category_id,
+        subcategory_id,
+      } = form;
 
-    if (res.ok) router.push("/events");
-    else alert("Failed to update event");
+      const payload = {
+        name,
+        start_date,
+        end_date,
+        total_attendees,
+        total_attendee_category,
+        details,
+        status,
+        venue_id,
+        company_id,
+        category_id,
+        subcategory_id,
+      };
+
+      const res = await fetch(`/api/events/${form.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await res.json();
+      console.log("📥 API response:", result);
+
+      if (!res.ok) {
+        alert(`Update failed: ${result.error?.message || "Unknown error"}`);
+      } else {
+        router.push("/events");
+      }
+    } catch (err) {
+      console.error("❗ Network error:", err);
+      alert("An error occurred while processing your request.");
+    }
   };
 
   if (!event) return <p>Loading...</p>;

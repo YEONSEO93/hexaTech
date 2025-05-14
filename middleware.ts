@@ -53,6 +53,32 @@ export async function middleware(request: NextRequest) {
       }
       return res;
     }
+//------------------------------
+    // This is a more specific check for the events API
+    if (pathname.startsWith('/api/events')) {
+      const { data: userRecord, error: roleError } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      const userRole = userRecord?.role;
+
+      if (roleError || !userRole) {
+        return createErrorResponse("Role not found", 404);
+      }
+
+      // block viewer from modifying events
+      if (
+        ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method) &&
+        userRole === ROLES.VIEWER
+      ) {
+        return createErrorResponse("Viewers cannot modify events", 403);
+      }
+
+      return res;
+    }
+//---------------------------
 
     if (pathname.startsWith('/api/')) {
 
@@ -63,10 +89,17 @@ export async function middleware(request: NextRequest) {
       return res;
     }
 
-    const userRole = user.user_metadata.role;
+    // get user role from the database (users table not user_metadata)
+    const { data: userRecord, error: roleError } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
 
-    if (!userRole) {
-      return createErrorResponse("Role not found", 404)
+    const userRole = userRecord?.role;
+
+    if (roleError || !userRole) {
+      return createErrorResponse("Role not found", 404);
     }
 
     //Add check to handle root URL redirect
@@ -102,6 +135,7 @@ export const config = {
     '/set-password',
     '/dashboard/:path*',
     '/users/:path*',
+    '/events/:path*',
     '/api/:path*',
   ],
 };

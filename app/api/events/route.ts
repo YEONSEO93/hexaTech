@@ -1,13 +1,16 @@
 // app/api/events/route.ts
 
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 import { NextRequest,NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/client';
 import { TablesInsert } from "@/types/supabase";
+import { Database } from "@/types/supabase";
 
 const supabase = createAdminClient();
 
 // POST /api/events
-// Creates a new event
+// Creates a new event (admin, collaborator)
 export async function POST(req: NextRequest) {
   const body = await req.json();
   console.log("👀 body from server:", body);
@@ -50,11 +53,41 @@ export async function POST(req: NextRequest) {
 
 
 // GET /api/events
-// Fetches all events
-export async function GET() {
-  const { data, error } = await supabase
-    .from('event')
-    .select(`
+// Fetches all events (admin , viewer)
+// Fetches only user's company events (collaborator)
+// Fetches events by company_id (admin, viewer)
+export async function GET(req: NextRequest) {
+  const supabase = createRouteHandlerClient<Database>({ cookies });
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const searchParams = new URL(req.url).searchParams;
+  const limit = Number(searchParams.get("limit") ?? "10") || 10;
+  const offset = Number(searchParams.get("offset") ?? "0") || 0;
+  const filterCompanyId = searchParams.get("company_id");
+
+  const { data: userData, error: userError } = await supabase
+    .from("users")
+    .select("role, company_id")
+    .eq("id", user.id)
+    .single();
+
+  if (userError || !userData) {
+    return NextResponse.json({ error: "User not found" }, { status: 403 });
+  }
+
+  const { role, company_id } = userData;
+
+  let query = supabase
+    .from("event")
+    .select(
+      `
       id,
       name,
       start_date,
@@ -66,16 +99,27 @@ export async function GET() {
       company:company(name),
       category:category(name),
       sub_category:sub_category(name)
-    `)
-    .order('start_date', { ascending: false });
+    `,
+      { count: "exact" }
+    )
+    .order("start_date", { ascending: false })
+    .range(offset, offset + limit - 1);
 
-    console.log("📦 Events from API:", data);
-    
+  if (role === "collaborator") {
+    if (!company_id) {
+      return NextResponse.json({ error: "Missing company_id" }, { status: 400 });
+    }
+    query = query.eq("company_id", company_id);
+  } else if (filterCompanyId) {
+    query = query.eq("company_id", Number(filterCompanyId));
+  }
+
+  const { data, count, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json({ data, total: count });
 }
 
