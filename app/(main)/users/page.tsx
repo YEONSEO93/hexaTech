@@ -29,6 +29,32 @@ export default function UsersPage() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+
+  const handleDelete = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) {
+      return;
+    }
+
+    setDeleteLoading(userId);
+    try {
+      const response = await fetch(`/api/users?userId=${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete user');
+      }
+
+      await fetchUsers();
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete user');
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
