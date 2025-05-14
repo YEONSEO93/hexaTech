@@ -119,6 +119,8 @@ export default function EventList() {
     {
       field: "name",
       header: "Event Name",
+      filter: true,
+      sortable: true,
       body: (row) => (
         <div>
           <span className="font-medium">{row.name}</span>
@@ -129,16 +131,20 @@ export default function EventList() {
     {
       field: "status",
       header: "Status",
+      filter: true,
+      sortable: true,
       body: (row) => <span>{row.status}</span>,
     },
     {
       field: "start_date",
       header: "Start Date",
+      sortable: true,
       body: (row) => <span>{formatDate(row.start_date)}</span>,
     },
     {
       field: "end_date",
       header: "End Date",
+      sortable: true,
       body: (row) => (
         <span>{row.end_date ? formatDate(row.end_date) : "-"} </span>
       ),
@@ -146,31 +152,38 @@ export default function EventList() {
     {
       field: "total_attendees",
       header: "Attendees",
+      sortable: true,
       body: (row) => <span>{row.total_attendees ?? "-"}</span>,
     },
     {
       field: "total_attendee_category",
       header: "Attendee Category",
+      sortable: true,
       body: (row) => <span>{row.total_attendee_category ?? "-"}</span>,
     },
     {
       field: "venue",
       header: "Venue",
+      filter: true,
+      sortable: true,
       body: (row) => <span>{row.venue?.name ?? "-"}</span>,
     },
     {
       field: "company",
       header: "Company",
+      sortable: true,
       body: (row) => <span>{row.company?.name ?? "-"}</span>,
     },
     {
       field: "category",
       header: "Category",
+      sortable: true,
       body: (row) => <span>{row.category?.name ?? "-"}</span>,
     },
     {
       field: "sub_category",
       header: "Subcategory",
+      sortable: true,
       body: (row) => <span>{row.sub_category?.name ?? "-"}</span>,
     },
     ...(userRole !== "viewer"
