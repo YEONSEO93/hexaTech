@@ -28,9 +28,6 @@ export default function EventList() {
   const { userRole } = useUser();
   const router = useRouter();
 
-  // // test
-  // const userRole = "admin" as "admin" | "viewer" | "collaborator";
-
   const [events, setEvents] = useState<EventItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -162,26 +159,27 @@ export default function EventList() {
       body: (row) => <span>{row.total_attendee_category ?? "-"}</span>,
     },
     {
-      field: "venue",
+      field: "venue.name",
       header: "Venue",
       filter: true,
       sortable: true,
       body: (row) => <span>{row.venue?.name ?? "-"}</span>,
     },
     {
-      field: "company",
+      field: "company.name",
       header: "Company",
+      filter: true,
       sortable: true,
       body: (row) => <span>{row.company?.name ?? "-"}</span>,
     },
     {
-      field: "category",
+      field: "category.name",
       header: "Category",
       sortable: true,
       body: (row) => <span>{row.category?.name ?? "-"}</span>,
     },
     {
-      field: "sub_category",
+      field: "sub_category.name",
       header: "Subcategory",
       sortable: true,
       body: (row) => <span>{row.sub_category?.name ?? "-"}</span>,
