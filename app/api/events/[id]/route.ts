@@ -1,7 +1,6 @@
 //api/events/[id]/route.tsf
 
 import { NextRequest, NextResponse } from "next/server";
-// import { createAdminClient } from "@/lib/supabase/client";
 import { createSupabaseServerComponentClient } from "@/lib/supabase/server";
 
 async function getUserAndRole() {
