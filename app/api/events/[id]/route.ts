@@ -1,7 +1,7 @@
 //api/events/[id]/route.tsf
 
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/client";
+// import { createAdminClient } from "@/lib/supabase/client";
 import { createSupabaseServerComponentClient } from "@/lib/supabase/server";
 
 async function getUserAndRole() {
@@ -31,7 +31,7 @@ async function getUserAndRole() {
 // GET /api/events/:id
 // Fetches a single event by ID
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
-    const supabase = createAdminClient();
+    const supabase = createSupabaseServerComponentClient();
     const eventId = Number(params.id);
   
     if (isNaN(eventId)) {

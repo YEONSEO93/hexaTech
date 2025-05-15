@@ -74,6 +74,7 @@ export default function CreateEventPage() {
     });
 
     if (res.ok) {
+      alert("✅ Event created successfully!");
       router.push("/events");
     } else {
       const result = await res.json();

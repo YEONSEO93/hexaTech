@@ -22,6 +22,7 @@ type EventItem = {
   company?: { name: string };
   category?: { name: string };
   sub_category?: { name: string };
+  details?: string | null;
 };
 
 export default function EventList() {
@@ -101,6 +102,7 @@ export default function EventList() {
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
+        console.log("Fetched events:", data.data);
         setEvents(data.data);
         setTotal(data.total);
         setLoading(false);
@@ -183,6 +185,11 @@ export default function EventList() {
       header: "Subcategory",
       sortable: true,
       body: (row) => <span>{row.sub_category?.name ?? "-"}</span>,
+    },
+    {
+      field: "details",
+      header: "Detail",
+      body: (row) => <span>{row.details ?? "-"}</span>,
     },
     ...(userRole !== "viewer"
       ? [
