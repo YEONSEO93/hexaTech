@@ -2,11 +2,10 @@
 
 "use client";
 
+import { PageHeader } from "@/components/PageHeader";
 import EventForm, { EventItem } from "@/components/events/EventForm";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Sidebar } from "@/components/sidebar";
-import MainLayout from "@/components/layouts/MainLayout";
 
 export default function EditEventPage() {
   const { id } = useParams();
@@ -66,6 +65,7 @@ export default function EditEventPage() {
       if (!res.ok) {
         alert(`Update failed: ${result.error?.message || "Unknown error"}`);
       } else {
+        alert("Event updated successfully!");
         router.push("/events");
       }
     } catch (err) {
@@ -78,19 +78,12 @@ export default function EditEventPage() {
 
   return (
     <>
-      <Sidebar navigationItems={[]} isLoading={false} />
-      <MainLayout>
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Events List</h1>
-        </div>
-        <div className="p-6 bg-white rounded-lg shadow">
-          <EventForm
-            mode="edit"
-            defaultValues={event}
-            onSubmit={handleSubmit}
-          />
-        </div>
-      </MainLayout>
+      <div className="flex items-center justify-between mb-6">
+        <PageHeader title="Edit Event" />
+      </div>
+      <div className="p-6 bg-white rounded-lg shadow">
+        <EventForm mode="edit" defaultValues={event} onSubmit={handleSubmit} />
+      </div>
     </>
   );
 }

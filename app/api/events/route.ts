@@ -98,7 +98,8 @@ export async function GET(req: NextRequest) {
       venue:venue(name, location),
       company:company(name),
       category:category(name),
-      sub_category:sub_category(name)
+      sub_category:sub_category(name),
+      details
     `,
       { count: "exact" }
     )
