@@ -17,6 +17,7 @@ type UserData = Pick<
   | "role"
   | "created_at"
   | "company_id"
+  | "company"
   | "updated_at"
   | "profile_photo"
 >;
@@ -137,7 +138,7 @@ export default function UsersPage() {
     { field: "role", header: "Role" },
     { field: "created_at", header: "Created At" },
     { field: "updated_at", header: "Updated At" },
-    { field: "company_id", header: "Company" },
+    { field: "company", header: "Company" },
     {
       field: "id",
       header: "Actions",

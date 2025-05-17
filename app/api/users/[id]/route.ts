@@ -10,6 +10,7 @@ type UserResponse = {
   name: string;
   email: string;
   role: Database['public']['Tables']['users']['Row']['role'];
+  company: string | null;
   company_id: string;
   createdAt: string;
   profile_photo: string | null;
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         name, 
         email, 
         role, 
+        company,
         company_id, 
         created_at, 
         profile_photo
@@ -62,6 +64,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       name: userData.name,
       email: userData.email,
       role: userData.role,
+      company: userData.company,
       company_id: userData.company_id?.toString() || '',
       createdAt: userData.created_at,
       profile_photo: userData.profile_photo
@@ -97,7 +100,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Invalid request body. Expected JSON.' }, { status: 400 });
     }
 
-    const { name, email, company_id, profile_photo, password } = updateData;
+    const { name, email, company, profile_photo, password } = updateData;
     const dataToUpdate: Partial<Database['public']['Tables']['users']['Update']> = {};
 
     if (name !== undefined) {
@@ -114,11 +117,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       dataToUpdate.email = email.trim();
     }
 
-    if (company_id !== undefined) {
-      if (typeof company_id !== 'string' || company_id.trim() === '') {
-        return NextResponse.json({ error: 'Company ID must be a non-empty string' }, { status: 400 });
+    if (company !== undefined) {
+      if (typeof company !== 'string' || company.trim() === '') {
+        return NextResponse.json({ error: 'Company must be a non-empty string' }, { status: 400 });
       }
-      dataToUpdate.company_id = parseInt(company_id.trim(), 10);
+      dataToUpdate.company = company.trim();
     }
 
     if (profile_photo !== undefined) {
@@ -141,6 +144,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         name, 
         email, 
         role, 
+        company,
         company_id, 
         profile_photo, 
         updated_at

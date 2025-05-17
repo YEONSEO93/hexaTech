@@ -14,7 +14,7 @@ type UserData = {
   name: string | null;
   email: string | null;
   role: string;
-  company_id: string;
+  company: string | null;
   createdAt: string;
   profile_photo: string | null;
 };
@@ -32,6 +32,9 @@ export default function EditUser() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+
+  const isEmailOnlyEditable = currentUserRole === 'collaborator' || currentUserRole === 'viewer';
 
   useEffect(() => {
     if (!id) return;
@@ -62,6 +65,13 @@ export default function EditUser() {
     };
 
     fetchUserData();
+
+    // Fetch current logged-in user's role
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserRole(user?.user_metadata?.role || null);
+    };
+    fetchCurrentUser();
   }, [id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -216,7 +226,7 @@ export default function EditUser() {
                     id="profile_photo"
                     accept="image/*"
                     onChange={handleImageUpload}
-                    disabled={uploading}
+                    disabled={uploading || isEmailOnlyEditable}
                     className="block w-full mt-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                   />
                   {uploading && <p className="mt-1 text-sm text-gray-500">Uploading...</p>}
@@ -237,6 +247,7 @@ export default function EditUser() {
                   value={formData.name || ''}
                   onChange={handleInputChange}
                   required
+                  disabled={isEmailOnlyEditable}
                   className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
@@ -252,6 +263,7 @@ export default function EditUser() {
                   value={formData.email || ''}
                   onChange={handleInputChange}
                   required
+                  disabled={false}
                   className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
@@ -271,16 +283,17 @@ export default function EditUser() {
               </div>
 
               <div>
-                <label htmlFor="company_id" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="company" className="block text-sm font-medium text-gray-700">
                   Company
                 </label>
                 <input
                   type="text"
-                  id="company_id"
-                  name="company_id"
-                  value={formData.company_id || ''}
+                  id="company"
+                  name="company"
+                  value={formData.company || ''}
                   onChange={handleInputChange}
                   required
+                  disabled={isEmailOnlyEditable}
                   className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>

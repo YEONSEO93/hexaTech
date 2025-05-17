@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     const { data: users, error: fetchError } = await supabaseAdmin
         .from('users')
-        .select('id, name, email, role, company_id, created_at, profile_photo');
+        .select('id, name, email, role, company, company_id, created_at, profile_photo');
 
     if (fetchError) {
         console.error("Error fetching users:", fetchError);
