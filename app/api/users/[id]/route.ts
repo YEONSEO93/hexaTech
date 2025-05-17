@@ -10,7 +10,7 @@ type UserResponse = {
   name: string;
   email: string;
   role: Database['public']['Tables']['users']['Row']['role'];
-  company: string;
+  company_id: string;
   createdAt: string;
   profile_photo: string | null;
 };
@@ -32,7 +32,15 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     const { data: userData, error: fetchError } = await supabaseAdmin
       .from('users')
-      .select('id, name, email, role, company, created_at, profile_photo') 
+      .select(`
+        id, 
+        name, 
+        email, 
+        role, 
+        company_id, 
+        created_at, 
+        profile_photo
+      `)
       .eq('id', userIdToFetch)
       .single();
 
@@ -44,9 +52,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 });
     }
 
-    if (!userData.name || !userData.company) {
-      console.error('Invalid user data: name and company are required');
-      return NextResponse.json({ error: 'Invalid user data: name and company are required' }, { status: 500 });
+    if (!userData.name) {
+      console.error('Invalid user data: name is required');
+      return NextResponse.json({ error: 'Invalid user data: name is required' }, { status: 500 });
     }
 
     const responseUser: UserResponse = {
@@ -54,7 +62,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       name: userData.name,
       email: userData.email,
       role: userData.role,
-      company: userData.company,
+      company_id: userData.company_id?.toString() || '',
       createdAt: userData.created_at,
       profile_photo: userData.profile_photo
     };
@@ -89,7 +97,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Invalid request body. Expected JSON.' }, { status: 400 });
     }
 
-    const { name, email, role, company, profilePhoto, password } = updateData;
+    const { name, email, company_id, profilePhoto, password } = updateData;
     const dataToUpdate: Partial<Database['public']['Tables']['users']['Update']> = {};
 
     if (name !== undefined) {
@@ -106,19 +114,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       dataToUpdate.email = email.trim();
     }
 
-    if (role !== undefined) {
-      const allowedRoles: Database['public']['Tables']['users']['Row']['role'][] = ['admin', 'collaborator'];
-      if (!allowedRoles.includes(role)) {
-        return NextResponse.json({ error: 'Invalid role specified' }, { status: 400 });
+    if (company_id !== undefined) {
+      if (typeof company_id !== 'string' || company_id.trim() === '') {
+        return NextResponse.json({ error: 'Company ID must be a non-empty string' }, { status: 400 });
       }
-      dataToUpdate.role = role;
-    }
-
-    if (company !== undefined) {
-      if (typeof company !== 'string') {
-        return NextResponse.json({ error: 'Company must be a string' }, { status: 400 });
-      }
-      dataToUpdate.company = company;
+      dataToUpdate.company_id = parseInt(company_id.trim(), 10);
     }
 
     if (profilePhoto !== undefined) {
@@ -136,7 +136,15 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       .from('users')
       .update(dataToUpdate)
       .eq('id', userIdToUpdate)
-      .select('id, name, email, role, company, profile_photo, updated_at')
+      .select(`
+        id, 
+        name, 
+        email, 
+        role, 
+        company_id, 
+        profile_photo, 
+        updated_at
+      `)
       .single();
 
     if (updateError) {
@@ -163,7 +171,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       }
     }
 
-    return NextResponse.json({ message: 'User updated successfully', user: updatedUser });
+    return NextResponse.json({ 
+      message: 'User updated successfully', 
+      user: {
+        ...updatedUser,
+        company_id: updatedUser.company_id?.toString() || ''
+      }
+    });
 
   } catch (error) {
     console.error('Error in PATCH /api/users/[id]:', error);
