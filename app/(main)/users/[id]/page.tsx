@@ -1,11 +1,12 @@
 import { notFound, redirect } from 'next/navigation';
 import { createSupabaseServerComponentClient } from '@/lib/supabase/server';
 import { Database } from '@/types/supabase';
+import Link from 'next/link';
 
 async function getUserData(supabase: Awaited<ReturnType<typeof createSupabaseServerComponentClient>>, userId: string) {
   const { data, error } = await supabase
     .from('users')
-    .select('id, name, email, role, company, created_at, updated_at')
+    .select('id, name, email, role, company, created_at, updated_at, profile_photo')
     .eq('id', userId)
     .single();
   
@@ -57,6 +58,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
 
   const isAdmin = loggedInUserRole === 'admin';
   const isOwnProfile = loggedInUser.id === targetUserId;
+  const isCollaborator = loggedInUserRole === 'collaborator';
 
   if (!isAdmin && !isOwnProfile) {
     console.warn(`UserProfilePage: Unauthorized access attempt by ${loggedInUser.id} (role: ${loggedInUserRole}) to view profile ${targetUserId}.`);
@@ -71,7 +73,17 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
 
   return (
     <div className="p-6">
-      <h1 className="mb-4 text-2xl font-semibold">User Profile</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-semibold">User Profile</h1>
+        {(isAdmin || (isCollaborator && isOwnProfile)) && (
+          <Link
+            href={`/users/${targetUserId}/edit`}
+            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            {isCollaborator ? 'Edit Email' : 'Edit Profile'}
+          </Link>
+        )}
+      </div>
       <div className="overflow-hidden bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6">
           <h3 className="text-lg font-medium leading-6 text-gray-900">
@@ -83,6 +95,18 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
         </div>
         <div className="border-t border-gray-200">
           <dl>
+            {userProfile.profile_photo && (
+              <div className="px-4 py-5 bg-gray-50 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">Profile Photo</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <img
+                    src={userProfile.profile_photo}
+                    alt="Profile"
+                    className="object-cover w-24 h-24 rounded-full"
+                  />
+                </dd>
+              </div>
+            )}
             <div className="px-4 py-5 bg-gray-50 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">Full name</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{userProfile.name}</dd>
@@ -91,7 +115,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
               <dt className="text-sm font-medium text-gray-500">Email address</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{userProfile.email}</dd>
             </div>
-             <div className="px-4 py-5 bg-gray-50 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <div className="px-4 py-5 bg-gray-50 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">Company</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{userProfile.company ?? 'N/A'}</dd>
             </div>
@@ -103,15 +127,13 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
               <dt className="text-sm font-medium text-gray-500">Created At</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{new Date(userProfile.created_at).toLocaleString()}</dd>
             </div>
-             <div className="px-4 py-5 bg-white sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <div className="px-4 py-5 bg-white sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{userProfile.updated_at ? new Date(userProfile.updated_at).toLocaleString() : 'N/A'}</dd>
             </div>
-            {/* Add more fields as needed */} 
           </dl>
         </div>
       </div>
-      {/* Optionally add edit/delete buttons for Admins or if it's own profile */} 
     </div>
   );
 } 
