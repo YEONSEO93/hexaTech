@@ -5,6 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 // import { Sidebar } from "@/components/sidebar";
 // import MainLayout from "@/components/layouts/MainLayout";
 import { PageHeader } from "@/components/PageHeader";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { Database } from '@/types/supabase';
+import Image from 'next/image';
 
 type UserData = {
   id: string;
@@ -20,6 +23,7 @@ export default function EditUser() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
+  const supabase = createClientComponentClient<Database>();
 
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,6 +31,7 @@ export default function EditUser() {
   const [formData, setFormData] = useState<Partial<UserData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -65,6 +70,79 @@ export default function EditUser() {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true);
+      setError(null);
+
+      if (!e.target.files || e.target.files.length === 0) {
+        throw new Error('You must select an image to upload.');
+      }
+
+      const file = e.target.files[0];
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        throw new Error('File must be an image.');
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('Image size must be less than 5MB.');
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${id}-${Date.now()}.${fileExt}`;
+      const filePath = `profile-photos/${fileName}`;
+
+      // Delete old avatar if exists
+      if (formData.profile_photo) {
+        const oldPath = formData.profile_photo.split('/').pop();
+        if (oldPath) {
+          const { error: deleteError } = await supabase.storage
+            .from('profile-photos')
+            .remove([oldPath]);
+          
+          if (deleteError) {
+            console.error('Error deleting old avatar:', deleteError);
+            // Continue with upload even if delete fails
+          }
+        }
+      }
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from('profile-photos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error('Upload error details:', uploadError);
+        throw new Error(`Failed to upload image: ${uploadError.message}`);
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-photos')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({
+        ...prev,
+        profile_photo: publicUrl
+      }));
+
+      setSuccessMessage('Profile photo updated successfully');
+
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      setError(err instanceof Error ? err.message : 'Error uploading image');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -111,6 +189,43 @@ export default function EditUser() {
         {user && (
           <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
             <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <div className="relative w-24 h-24">
+                  {formData.profile_photo ? (
+                    <Image
+                      src={formData.profile_photo}
+                      alt="Profile"
+                      fill
+                      className="object-cover rounded-full"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-24 h-24 bg-gray-200 rounded-full">
+                      <span className="text-2xl text-gray-400">
+                        {formData.name?.[0]?.toUpperCase() || '?'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="profile_photo" className="block text-sm font-medium text-gray-700">
+                    Profile Photo
+                  </label>
+                  <input
+                    type="file"
+                    id="profile_photo"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                    className="block w-full mt-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                  />
+                  {uploading && <p className="mt-1 text-sm text-gray-500">Uploading...</p>}
+                  <p className="mt-1 text-sm text-gray-500">
+                    Max file size: 5MB. Supported formats: JPG, PNG, GIF
+                  </p>
+                </div>
+              </div>
+
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   Name

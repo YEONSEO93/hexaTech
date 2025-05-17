@@ -66,7 +66,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     if (userRole === 'collaborator' && userId) {
       navigationItems.push({
         name: "My Profile",
-        href: `/users/${userId}`,
+        href: `/users/${userId}/edit`,
         roles: ['collaborator']
       });
       console.log(navigationItems)

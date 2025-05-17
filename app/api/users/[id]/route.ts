@@ -97,7 +97,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Invalid request body. Expected JSON.' }, { status: 400 });
     }
 
-    const { name, email, company_id, profilePhoto, password } = updateData;
+    const { name, email, company_id, profile_photo, password } = updateData;
     const dataToUpdate: Partial<Database['public']['Tables']['users']['Update']> = {};
 
     if (name !== undefined) {
@@ -121,11 +121,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       dataToUpdate.company_id = parseInt(company_id.trim(), 10);
     }
 
-    if (profilePhoto !== undefined) {
-      if (typeof profilePhoto !== 'string') {
+    if (profile_photo !== undefined) {
+      if (typeof profile_photo !== 'string') {
         return NextResponse.json({ error: 'Profile photo must be a string' }, { status: 400 });
       }
-      dataToUpdate.profile_photo = profilePhoto;
+      dataToUpdate.profile_photo = profile_photo;
     }
 
     if (Object.keys(dataToUpdate).length === 0) {

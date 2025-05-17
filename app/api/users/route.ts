@@ -84,11 +84,36 @@ export async function POST(request: NextRequest) {
 
     const { name, email, role, company, profilePhoto, password } = parsedBody;
 
+    const { data: existingCompany, error: findError } = await supabaseAdmin
+      .from('company')
+      .select('id')
+      .eq('name', company)
+      .single();
+
+    let companyId;
+    if (findError) {
+      const { data: newCompany, error: createError } = await supabaseAdmin
+        .from('company')
+        .insert({ name: company })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Failed to create company:', createError);
+        return NextResponse.json({ error: 'Failed to create company.' }, { status: 500 });
+      }
+
+      companyId = Number(newCompany.id);
+    } else {
+      companyId = Number(existingCompany.id);
+    }
+
     const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       email,
       {
         data: { 
           role: role,
+          email_confirm: true
         },
         redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/set-password`
       }
@@ -101,6 +126,9 @@ export async function POST(request: NextRequest) {
       }
       if (inviteError.message.includes('invitation per hour')) { 
          return NextResponse.json({ error: 'Invitation rate limit reached. Please try again later.'}, { status: 429 });
+      }
+      if (inviteError.message.includes('expired')) {
+         return NextResponse.json({ error: 'Invitation link expired. Please try inviting the user again.'}, { status: 400 });
       }
       return NextResponse.json({ error: 'Failed to send invitation email.' }, { status: 500 });
     }
@@ -116,8 +144,7 @@ export async function POST(request: NextRequest) {
       email: invitedUser.email!, 
       name: name, 
       role: role,
-      company_id: Number(company),
-      company: company,
+      company_id: companyId,
       profile_photo: profilePhoto,
       must_change_password: true 
     };
@@ -130,7 +157,12 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('Failed to insert invited user into users table:', insertError);
-      return NextResponse.json({ error: 'Invitation sent, but failed to save user details to database.' }, { status: 500 });
+      // Delete the invited user from auth if database insert fails
+      await supabaseAdmin.auth.admin.deleteUser(invitedUser.id);
+      return NextResponse.json({ 
+        error: 'Failed to save user details to database. Please try again.',
+        details: insertError.message 
+      }, { status: 500 });
     }
 
     if (password) {
@@ -180,7 +212,6 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Check if the user exists and is not an admin
     const { data: userToDelete, error: fetchError } = await supabaseAdmin
       .from('users')
       .select('role')

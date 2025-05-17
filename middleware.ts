@@ -69,20 +69,26 @@ export async function middleware(request: NextRequest) {
       return createErrorResponse("Role not found", 404)
     }
 
-    //Add check to handle root URL redirect
-    if (pathname === "/" || isPathInRoutes(pathname, ROUTES.AUTH)) {
-      if (isAdminOrViewer(userRole)) {
-        return createRedirectResponse(request, '/dashboard');
+    if (pathname.startsWith('/users/')) {
+      const pathParts = pathname.split('/');
+      const userIdFromPath = pathParts[2];
+      if (userIdFromPath === user.id) {
+        return res;
       }
-      return createRedirectResponse(request, '/events');
     }
 
     if (isPathInRoutes(pathname, ROUTES.ADMIN_ONLY) && userRole !== ROLES.ADMIN) {
-      //Let it go to the root and redirect based on our role check above (user roles could be either Viewer or Collaborator)
       return createRedirectResponse(request, '/');
     }
 
     if (isPathInRoutes(pathname, ROUTES.ADMIN_VIEWER) && !isAdminOrViewer(userRole)) {
+      return createRedirectResponse(request, '/events');
+    }
+
+    if (pathname === "/" || isPathInRoutes(pathname, ROUTES.AUTH)) {
+      if (isAdminOrViewer(userRole)) {
+        return createRedirectResponse(request, '/dashboard');
+      }
       return createRedirectResponse(request, '/events');
     }
 
