@@ -1,10 +1,10 @@
-//api/events/[id]/route.tsf
+//api/events/[id]/route.tsx
 
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerComponentClient } from "@/lib/supabase/server";
+import { createSupabaseRouteHandlerClient } from "@/lib/supabase/route";
 
 async function getUserAndRole() {
-  const supabase = createSupabaseServerComponentClient();
+  const supabase = createSupabaseRouteHandlerClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   console.log("🔵 User:", user);
   
@@ -30,7 +30,7 @@ async function getUserAndRole() {
 // GET /api/events/:id
 // Fetches a single event by ID
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
-    const supabase = createSupabaseServerComponentClient();
+    const supabase = createSupabaseRouteHandlerClient();
     const eventId = Number(params.id);
   
     if (isNaN(eventId)) {
@@ -69,7 +69,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 }); // ✅ block viewer
   }
 
-  const supabase = createSupabaseServerComponentClient();
+  const supabase = createSupabaseRouteHandlerClient();
   const eventIdRaw = params.id;
   const payload = await req.json();
 
@@ -120,7 +120,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 }); 
     }
 
-    const supabase = createSupabaseServerComponentClient();
+    const supabase = createSupabaseRouteHandlerClient();
     const eventIdRaw = params.id;
   
     const eventId = Number(eventIdRaw);
