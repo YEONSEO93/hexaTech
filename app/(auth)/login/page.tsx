@@ -106,16 +106,6 @@ const LoginPage = () => {
                 />
                 <PasswordInput id="password" name="password" placeholder="Enter your password" required />
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="remember"
-                      className="h-4 w-4 rounded border-gray-300 text-[#001F4D] focus:ring-[#001F4D]"
-                    />
-                    <label htmlFor="remember" className="text-sm text-gray-600">
-                      Remember me
-                    </label>
-                  </div>
                   <Link
                     href="/forgot-password"
                     className="text-sm text-[#001F4D] hover:text-[#001F4D]/80"
