@@ -1,5 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Database } from '@/types/supabase';
+import { createSupabaseClientComponentClient } from './client';
 
 export type UserRole = 'admin' | 'collaborator' | 'viewer';
 
@@ -27,7 +26,7 @@ export interface AuthResponse {
 
 export const checkSession = async (): Promise<AuthResponse> => {
   try {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createSupabaseClientComponentClient();
     const { data: { session }, error } = await supabase.auth.getSession();
 
     if (error || !session) {
@@ -63,7 +62,7 @@ export const checkSession = async (): Promise<AuthResponse> => {
 
 export const signInWithEmail = async (email: string, password: string): Promise<AuthResponse> => {
   try {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createSupabaseClientComponentClient();
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -102,7 +101,7 @@ export const signInWithEmail = async (email: string, password: string): Promise<
 
 export const signOut = async (): Promise<{ success: boolean; error?: string }> => {
   try {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createSupabaseClientComponentClient();
     const { error } = await supabase.auth.signOut();
     
     if (error) {
@@ -118,7 +117,7 @@ export const signOut = async (): Promise<{ success: boolean; error?: string }> =
 
 export const getCurrentUser = async (): Promise<AuthResponse> => {
   try {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createSupabaseClientComponentClient();
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user) {
@@ -155,7 +154,7 @@ export const getCurrentUser = async (): Promise<AuthResponse> => {
 
 export const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createSupabaseClientComponentClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
 
     if (error) {

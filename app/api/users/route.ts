@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Database } from '@/types/supabase';
-import { createAdminClient } from '@/lib/supabase/client';
+import { createSupabaseRouteHandlerClient } from '@/lib/supabase/route';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { authorizeRequest } from '@/lib/api/authUtils';
@@ -23,7 +23,7 @@ const inviteUserSchema = z.object({
 export async function GET(request: NextRequest) {
   const cookieStore = cookies();
   const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-  const supabaseAdmin = createAdminClient();
+  const supabaseAdmin = createSupabaseRouteHandlerClient();
 
   try {
     const authResult = await authorizeRequest(request, { 
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabaseAdmin = createAdminClient();
+  const supabaseAdmin = createSupabaseRouteHandlerClient();
   const cookieStore = cookies();
   const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
 
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const supabaseAdmin = createAdminClient();
+  const supabaseAdmin = createSupabaseRouteHandlerClient();
   const cookieStore = cookies();
   const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
 

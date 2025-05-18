@@ -1,17 +1,15 @@
 // app/api/events/route.ts
 
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
 import { NextRequest,NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/client';
+import { createSupabaseRouteHandlerClient } from '@/lib/supabase/route';
 import { TablesInsert } from "@/types/supabase";
-import { Database } from "@/types/supabase";
 
-const supabase = createAdminClient();
 
 // POST /api/events
 // Creates a new event (admin, collaborator)
 export async function POST(req: NextRequest) {
+  const supabase = createSupabaseRouteHandlerClient();
+
   const body = await req.json();
   console.log("👀 body from server:", body);
 
@@ -57,7 +55,7 @@ export async function POST(req: NextRequest) {
 // Fetches only user's company events (collaborator)
 // Fetches events by company_id (admin, viewer)
 export async function GET(req: NextRequest) {
-  const supabase = createRouteHandlerClient<Database>({ cookies });
+  const supabase = createSupabaseRouteHandlerClient();
 
   const {
     data: { user },

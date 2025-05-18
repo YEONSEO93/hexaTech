@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { createAdminClient } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
-import { User, SupabaseClient } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
+import { createSupabaseRouteHandlerClient } from '@/lib/supabase/route';
 
 interface AuthorizeOptions {
   allowedRoles?: Database['public']['Tables']['users']['Row']['role'][];
   allowSelf?: boolean;
   targetUserId?: string | null;
-  supabaseClient?: SupabaseClient<Database>;
 }
 
 interface AuthorizeResult {
@@ -28,10 +25,9 @@ export async function authorizeRequest(
   request: NextRequest, 
   options: AuthorizeOptions = {}
 ): Promise<AuthorizeResult | NextResponse> {
-  const { allowedRoles = [], allowSelf = false, targetUserId = null, supabaseClient } = options;
+  const { allowedRoles = [], allowSelf = false, targetUserId = null } = options;
 
-  const supabase = supabaseClient ?? createRouteHandlerClient<Database>({ cookies: () => cookies() });
-  const supabaseAdmin = createAdminClient();
+  const supabase = createSupabaseRouteHandlerClient();
 
   // --- 1. Check Session ---
   const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -50,7 +46,7 @@ export async function authorizeRequest(
   let userRole: Database['public']['Tables']['users']['Row']['role'] | null = null;
   let isAdmin = false;
   if (allowedRoles.length > 0 || (allowSelf && targetUserId !== requestingUserId)) {
-      const { data: requestingUserData, error: roleError } = await supabaseAdmin
+      const { data: requestingUserData, error: roleError } = await supabase
           .from('users')
           .select('role')
           .eq('id', requestingUserId)
@@ -97,7 +93,7 @@ export async function authorizeRequest(
 
   // --- 4. Return User Info if Authorized ---
   if (authorized && !userRole && !allowedRoles.length && allowSelf && targetUserId === requestingUserId) {
-      const { data: selfUserData, error: selfRoleError } = await supabaseAdmin
+      const { data: selfUserData, error: selfRoleError } = await supabase
          .from('users')
          .select('role')
          .eq('id', requestingUserId)

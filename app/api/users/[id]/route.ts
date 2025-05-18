@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/client';
+import { createSupabaseRouteHandlerClient } from '@/lib/supabase/route';
 import { NextRequest, NextResponse } from 'next/server';
 import { authorizeRequest } from '@/lib/api/authUtils';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   try {
     const userIdToFetch = params.id;
     const cookieStore = cookies();
-    const supabaseAdmin = createAdminClient();
+    const supabaseAdmin = createSupabaseRouteHandlerClient();
     const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
 
     const authResult = await authorizeRequest(request, { 
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const userIdToUpdate = params.id;
-  const supabaseAdmin = createAdminClient(); 
+  const supabaseAdmin = createSupabaseRouteHandlerClient(); 
   const cookieStore = cookies(); 
   const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore }); 
 
