@@ -33,7 +33,8 @@ type FiltersObject = DataTableFilterMeta;
 type FilterOptions = ColumnFilterElementTemplateOptions;
 
 export type BaseColumnProps<T> = {
-  field: Extract<keyof T, string>;
+  // field: Extract<keyof T, string>;
+  field: string;
   header: string;
   sortable?: boolean;
   filter?: boolean;
@@ -89,67 +90,65 @@ const getDataType = (filterType: FilterType): DataType | undefined => {
   }
 };
 
-const createFilterElement =
-  <T,>(filterType: FilterType, data?: T[]) =>
-  {
-    const FilterElementComponent = (options: FilterOptions) => {
-      switch (filterType) {
-        case "date":
-          return (
-            <Calendar
-              value={options.value}
-              onChange={(e) => {
-                console.log(e.value);
-                options.filterCallback(e.value, options.index);
-              }}
-              dateFormat="dd/mm/yy"
-              placeholder="dd/mm/yyyy"
-              mask="99/99/9999"
-            />
-          );
-        case "boolean":
-          return (
-            <Dropdown
-              value={options.value}
-              options={[
-                { label: "Yes", value: true },
-                { label: "No", value: false },
-              ]}
-              onChange={(e) => options.filterCallback(e.value, options.index)}
-              placeholder="Select"
-            />
-          );
-        case "number":
-          return (
-            <InputNumber
-              value={options.value}
-              onChange={(e) => options.filterCallback(e.value, options.index)}
-            />
-          );
-        case "dropdown":
-          const dropdownOptions = [
-            ...new Set(data?.map((obj) => obj[options.field as keyof T])),
-          ];
-  
-          return (
-            <MultiSelect
-              key={options.value}
-              value={options.value}
-              options={dropdownOptions}
-              onChange={(e) => {
-                options.filterCallback(e.value);
-              }}
-              placeholder="Any"
-              className="p-column-filter"
-            />
-          );
-        default:
-          return null;
-      }
-    };
-    FilterElementComponent.displayName = `FilterElement(${filterType})`; 
-    return FilterElementComponent;
+const createFilterElement = <T,>(filterType: FilterType, data?: T[]) => {
+  const FilterElementComponent = (options: FilterOptions) => {
+    switch (filterType) {
+      case "date":
+        return (
+          <Calendar
+            value={options.value}
+            onChange={(e) => {
+              console.log(e.value);
+              options.filterCallback(e.value, options.index);
+            }}
+            dateFormat="dd/mm/yy"
+            placeholder="dd/mm/yyyy"
+            mask="99/99/9999"
+          />
+        );
+      case "boolean":
+        return (
+          <Dropdown
+            value={options.value}
+            options={[
+              { label: "Yes", value: true },
+              { label: "No", value: false },
+            ]}
+            onChange={(e) => options.filterCallback(e.value, options.index)}
+            placeholder="Select"
+          />
+        );
+      case "number":
+        return (
+          <InputNumber
+            value={options.value}
+            onChange={(e) => options.filterCallback(e.value, options.index)}
+          />
+        );
+      case "dropdown":
+        const dropdownOptions = [
+          ...new Set(data?.map((obj) => obj[options.field as keyof T])),
+        ];
+
+        return (
+          <MultiSelect
+            key={options.value}
+            value={options.value}
+            options={dropdownOptions}
+            onChange={(e) => {
+              options.filterCallback(e.value);
+            }}
+            placeholder="Any"
+            className="p-column-filter"
+          />
+        );
+      default:
+        return null;
+    }
   };
+  FilterElementComponent.displayName = `FilterElement(${filterType})`;
+  return FilterElementComponent;
+};
 
 const renderFilterElement = <T,>(filterType: FilterType, value: T[]) =>
   filterType === "dropdown"
@@ -183,7 +182,9 @@ const renderBodyElement = <T,>(
         ? renderBooleanElement(value)
         : undefined;
     default:
-      return (typeof value === "string" || typeof value === "number") ? String(value) : '';
+      return typeof value === "string" || typeof value === "number"
+        ? String(value)
+        : "";
   }
 };
 
@@ -206,8 +207,11 @@ const hasDateFields = <T,>(columns: BaseColumnProps<T>[]) => {
   return columns.some((col) => col.filterType === "date");
 };
 
-export default function BaseTable<T extends Record<string, unknown>>(props: BaseTableProps<T>) {
-  const { value, columns, paginator, rows, rowsPerPageOptions, ...rest } = props;
+export default function BaseTable<T extends Record<string, unknown>>(
+  props: BaseTableProps<T>
+) {
+  const { value, columns, paginator, rows, rowsPerPageOptions, ...rest } =
+    props;
   const [filters, setFilters] = useState<FiltersObject>({});
   const [selected, setSelected] = useState<SelectedRow>([]);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
@@ -222,7 +226,7 @@ export default function BaseTable<T extends Record<string, unknown>>(props: Base
   }, []);
 
   const onRowEditComplete = () => {};
-  
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onEdit = (rowData: T) => {};
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -295,47 +299,32 @@ export default function BaseTable<T extends Record<string, unknown>>(props: Base
       {...rest}
     >
       <Column selectionMode="multiple" headerStyle={{ width: "3rem" }}></Column>
-      {columns.map(({ field, header, filterType, body: columnBody, ...rest }, i) => {
-        const filterTypeToUse = filterType || "text";
-        return (
-          <Column
-            key={`${field}-${i}`}
-            field={field}
-            header={header}
-            {...rest}
-            dataType={getDataType(filterTypeToUse)}
-            showFilterMatchModes={filterTypeToUse !== "dropdown"}
-            filterElement={rest.filter ? renderFilterElement(filterTypeToUse, value) : undefined}
-            body={columnBody ? columnBody : (rowData) => renderBodyElement(filterTypeToUse, field, rowData)}
-          />
-        );
-      })}
-      <Column
-        headerStyle={{ width: "1rem" }}
-        bodyStyle={{ padding: ".5rem" }}
-        body={(rowData: T) => (
-          <Button
-            icon="pi pi-pencil"
-            text
-            rounded
-            className="opacity-60"
-            onClick={() => onEdit(rowData)}
-          />
-        )}
-      ></Column>
-      <Column
-        headerStyle={{ width: "1rem" }}
-        bodyStyle={{ padding: ".5rem" }}
-        body={(rowData: T) => (
-          <Button
-            icon="pi pi-trash"
-            text
-            rounded
-            severity="danger"
-            onClick={() => onDelete(rowData)}
-          />
-        )}
-      ></Column>
+      {columns.map(
+        ({ field, header, filterType, body: columnBody, ...rest }, i) => {
+          const filterTypeToUse = filterType || "text";
+          return (
+            <Column
+              key={`${field}-${i}`}
+              field={field}
+              header={header}
+              {...rest}
+              dataType={getDataType(filterTypeToUse)}
+              showFilterMatchModes={filterTypeToUse !== "dropdown"}
+              filterElement={
+                rest.filter
+                  ? renderFilterElement(filterTypeToUse, value)
+                  : undefined
+              }
+              body={
+                columnBody
+                  ? columnBody
+                  : (rowData) =>
+                      renderBodyElement(filterTypeToUse, field, rowData)
+              }
+            />
+          );
+        }
+      )}
     </DataTable>
   );
 }

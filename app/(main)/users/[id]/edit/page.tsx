@@ -11,7 +11,8 @@ type UserData = {
   name: string | null;
   email: string | null;
   role: string;
-  company: string | null;
+  company_id: number | null;
+  company: { id: number; name: string } | null;
   createdAt: string;
 };
 
@@ -73,7 +74,7 @@ export default function EditUser() {
               <strong>Role:</strong> {user.role}
             </p>
             <p>
-              <strong>Company:</strong> {user.company || "N/A"}
+              <strong>Company:</strong> {user.company?.name || "N/A"}
             </p>
             <p>
               <strong>Created At:</strong>{" "}

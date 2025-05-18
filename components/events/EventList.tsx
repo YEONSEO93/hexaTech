@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/app/context/UserContext";
 import BaseTable, {
   BaseColumnProps,
 } from "@/components/ui/base-table/base-table";
-import { useRouter } from "next/navigation";
+import Pagination from "@/components/ui/Pagination";
+
+const PAGE_SIZE = 10;
 
 type EventItem = {
   id: number;
@@ -18,16 +22,47 @@ type EventItem = {
   company?: { name: string };
   category?: { name: string };
   sub_category?: { name: string };
+  details?: string | null;
 };
 
 export default function EventList() {
+  const { userRole } = useUser();
+  const router = useRouter();
+
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+
+  const [companyOptions, setCompanyOptions] = useState<
+    { id: number; name: string }[]
+  >([]);
+  const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   function formatDate(dateString: string): string {
     const date = new Date(dateString);
     const formattedDate = new Intl.DateTimeFormat("en-AU").format(date);
-    console.log("Formatted date:", formattedDate);
 
     return formattedDate;
   }
+
+  const fetchEvents = async () => {
+    setLoading(true);
+    const offset = page * PAGE_SIZE;
+
+    const res = await fetch(`/api/events?limit=${PAGE_SIZE}&offset=${offset}`);
+    const data = await res.json();
+
+    setEvents(data.data);
+    setTotal(data.total);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [page]);
 
   const handleDelete = async (id: number) => {
     const confirm = window.confirm(
@@ -43,23 +78,33 @@ export default function EventList() {
       if (!res.ok) throw new Error("Failed to delete");
 
       alert("Event deleted successfully.");
-      router.refresh?.();
+      await fetchEvents();
     } catch (err) {
       alert("Error deleting event.");
       console.error(err);
     }
   };
 
-  const router = useRouter();
-  const [events, setEvents] = useState<EventItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    fetch("/api/companies")
+      .then((res) => res.json())
+      .then((data) => setCompanyOptions(data));
+  }, []);
 
   useEffect(() => {
-    fetch("/api/events")
+    const offset = page * PAGE_SIZE;
+    let url = `/api/events?limit=${PAGE_SIZE}&offset=${offset}`;
+
+    if (selectedCompany !== null) {
+      url += `&company_id=${selectedCompany}`;
+    }
+
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
-        setEvents(data);
+        console.log("Fetched events:", data.data);
+        setEvents(data.data);
+        setTotal(data.total);
         setLoading(false);
       })
       .catch((err) => {
@@ -67,12 +112,14 @@ export default function EventList() {
         setError("Failed to load events");
         setLoading(false);
       });
-  }, []);
+  }, [page, selectedCompany]); // ✅ refresh the data when the page changes
 
   const columns: BaseColumnProps<EventItem>[] = [
     {
       field: "name",
       header: "Event Name",
+      filter: true,
+      sortable: true,
       body: (row) => (
         <div>
           <span className="font-medium">{row.name}</span>
@@ -83,16 +130,20 @@ export default function EventList() {
     {
       field: "status",
       header: "Status",
+      filter: true,
+      sortable: true,
       body: (row) => <span>{row.status}</span>,
     },
     {
       field: "start_date",
       header: "Start Date",
+      sortable: true,
       body: (row) => <span>{formatDate(row.start_date)}</span>,
     },
     {
       field: "end_date",
       header: "End Date",
+      sortable: true,
       body: (row) => (
         <span>{row.end_date ? formatDate(row.end_date) : "-"} </span>
       ),
@@ -100,54 +151,71 @@ export default function EventList() {
     {
       field: "total_attendees",
       header: "Attendees",
+      sortable: true,
       body: (row) => <span>{row.total_attendees ?? "-"}</span>,
     },
     {
       field: "total_attendee_category",
       header: "Attendee Category",
+      sortable: true,
       body: (row) => <span>{row.total_attendee_category ?? "-"}</span>,
     },
     {
-      field: "venue",
+      field: "venue.name",
       header: "Venue",
+      filter: true,
+      sortable: true,
       body: (row) => <span>{row.venue?.name ?? "-"}</span>,
     },
     {
-      field: "company",
+      field: "company.name",
       header: "Company",
+      filter: true,
+      sortable: true,
       body: (row) => <span>{row.company?.name ?? "-"}</span>,
     },
     {
-      field: "category",
+      field: "category.name",
       header: "Category",
+      sortable: true,
       body: (row) => <span>{row.category?.name ?? "-"}</span>,
     },
     {
-      field: "sub_category",
+      field: "sub_category.name",
       header: "Subcategory",
+      sortable: true,
       body: (row) => <span>{row.sub_category?.name ?? "-"}</span>,
     },
     {
-      field: "id",
-      header: "Actions",
-      body: (row) => (
-        <div className="flex items-center justify-center gap-2">
-          <button
-            onClick={() => router.push(`/events/${row.id}/edit`)}
-            className="rounded-md bg-[#001F4D] font-semibold text-white hover:bg-[#001F4D]/90 focus:outline-none px-4 py-2 text-sm"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => handleDelete(row.id)}
-            className="rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
-          >
-            Delete
-          </button>
-        </div>
-      ),
-      style: { textAlign: "center" },
+      field: "details",
+      header: "Detail",
+      body: (row) => <span>{row.details ?? "-"}</span>,
     },
+    ...(userRole !== "viewer"
+      ? [
+          {
+            field: "__actions" as keyof EventItem,
+            header: "Actions",
+            body: (row: EventItem) => (
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => router.push(`/events/${row.id}/edit`)}
+                  className="rounded-md bg-[#001F4D] font-semibold text-white hover:bg-[#001F4D]/90 focus:outline-none px-4 py-2 text-sm"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(row.id)}
+                  className="rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            ),
+            style: { textAlign: "center" as const },
+          },
+        ]
+      : []),
   ];
 
   if (loading) return <p>Loading events...</p>;
@@ -155,7 +223,34 @@ export default function EventList() {
 
   return (
     <div className="p-4 bg-white rounded-lg shadow">
+      {userRole !== "collaborator" && (
+        <div>
+          <label className="block mb-1 font-medium">Filter by Company</label>
+          <select
+            value={selectedCompany ?? ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSelectedCompany(val ? Number(val) : null);
+              setPage(0);
+            }}
+            className="w-full border rounded px-3 py-2 bg-white"
+          >
+            <option value="">All Companies</option>
+            {companyOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <BaseTable value={events} columns={columns} />
+      <Pagination
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={total}
+        onPageChange={(newPage) => setPage(newPage)}
+      />
     </div>
   );
 }

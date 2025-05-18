@@ -12,7 +12,10 @@ const inviteUserSchema = z.object({
   role: z.enum(['admin', 'collaborator', 'viewer'], {
     errorMap: () => ({ message: "Invalid role provided. Must be 'admin', 'collaborator', or 'viewer'." }) 
   }),
-  company: z.string().min(1, { message: "Company is required and cannot be empty" }),
+  company_id: z.number({
+    required_error: "Company ID is required",
+    invalid_type_error: "Company ID must be a number"
+  }),
   profilePhoto: z.string().optional(),
   password: z.string().min(6, { message: "Password must be at least 6 characters long" }).optional()
 });
@@ -33,7 +36,16 @@ export async function GET(request: NextRequest) {
 
     const { data: users, error: fetchError } = await supabaseAdmin
         .from('users')
-        .select('id, name, email, role, company, created_at, profile_photo');
+        .select(`
+          id, 
+          name, 
+          email, 
+          role, 
+          created_at, 
+          profile_photo,
+          company_id,
+          company:company(id, name)
+        `);
 
     if (fetchError) {
         console.error("Error fetching users:", fetchError);
@@ -82,7 +94,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request body. Expected JSON.' }, { status: 400 });
     }
 
-    const { name, email, role, company, profilePhoto, password } = parsedBody;
+    const { name, email, role, company_id, profilePhoto, password } = parsedBody;
 
     const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       email,
@@ -116,7 +128,7 @@ export async function POST(request: NextRequest) {
       email: invitedUser.email!, 
       name: name, 
       role: role,
-      company: company,
+      company_id: company_id,
       profile_photo: profilePhoto,
       must_change_password: true 
     };
@@ -151,6 +163,76 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Request failed in POST /api/users:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const supabaseAdmin = createAdminClient();
+  const cookieStore = cookies();
+  const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
+
+  try {
+    const authResult = await authorizeRequest(request, { 
+      allowedRoles: ['admin'],
+      supabaseClient: supabase
+    });
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
+
+    // Check if the user exists and is not an admin
+    const { data: userToDelete, error: fetchError } = await supabaseAdmin
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching user:', fetchError);
+      return NextResponse.json({ error: 'Failed to fetch user details' }, { status: 500 });
+    }
+
+    if (!userToDelete) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    if (userToDelete.role === 'admin') {
+      return NextResponse.json({ error: 'Cannot delete admin users' }, { status: 403 });
+    }
+
+    // Delete user from auth
+    const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (deleteAuthError) {
+      console.error('Error deleting user from auth:', deleteAuthError);
+      return NextResponse.json({ error: 'Failed to delete user from authentication' }, { status: 500 });
+    }
+
+    // Delete user from users table
+    const { error: deleteUserError } = await supabaseAdmin
+      .from('users')
+      .delete()
+      .eq('id', userId);
+
+    if (deleteUserError) {
+      console.error('Error deleting user from database:', deleteUserError);
+      return NextResponse.json({ error: 'Failed to delete user from database' }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'User deleted successfully' }, { status: 200 });
+
+  } catch (error) {
+    console.error('Request failed in DELETE /api/users:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

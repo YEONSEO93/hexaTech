@@ -10,7 +10,8 @@ type UserResponse = {
   name: string;
   email: string;
   role: Database['public']['Tables']['users']['Row']['role'];
-  company: string;
+  company_id: number | null;
+  company: { id: number; name: string; } | null;
   createdAt: string;
   profile_photo: string | null;
 };
@@ -32,7 +33,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     const { data: userData, error: fetchError } = await supabaseAdmin
       .from('users')
-      .select('id, name, email, role, company, created_at, profile_photo') 
+      .select(`
+        id, 
+        name, 
+        email, 
+        role, 
+        company_id,
+        company:company(id, name),
+        created_at, 
+        profile_photo
+      `) 
       .eq('id', userIdToFetch)
       .single();
 
@@ -44,9 +54,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 });
     }
 
-    if (!userData.name || !userData.company) {
-      console.error('Invalid user data: name and company are required');
-      return NextResponse.json({ error: 'Invalid user data: name and company are required' }, { status: 500 });
+    if (!userData.name) {
+      console.error('Invalid user data: name is required');
+      return NextResponse.json({ error: 'Invalid user data: name is required' }, { status: 500 });
     }
 
     const responseUser: UserResponse = {
@@ -54,6 +64,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       name: userData.name,
       email: userData.email,
       role: userData.role,
+      company_id: userData.company_id,
       company: userData.company,
       createdAt: userData.created_at,
       profile_photo: userData.profile_photo
@@ -118,7 +129,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       if (typeof company !== 'string') {
         return NextResponse.json({ error: 'Company must be a string' }, { status: 400 });
       }
-      dataToUpdate.company = company;
+      dataToUpdate.company_id = parseInt(company);
     }
 
     if (profilePhoto !== undefined) {

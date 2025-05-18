@@ -8,7 +8,7 @@ import BaseTable, {
   BaseColumnProps,
 } from "@/components/ui/base-table/base-table";
 import { Database } from "@/types/supabase";
-import { RoleBasedRender } from "@/components/RoleBasedRender";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 type UserData = Pick<
   Database["public"]["Tables"]["users"]["Row"],
@@ -16,16 +16,45 @@ type UserData = Pick<
   | "name"
   | "role"
   | "created_at"
-  | "company"
+  | "company_id"
   | "updated_at"
   | "profile_photo"
->;
+> & {
+  company: { id: number; name: string } | null;
+};
 
 export default function UsersPage() {
   const router = useRouter();
+  const { isAdmin } = useAuth();
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+
+  const handleDelete = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) {
+      return;
+    }
+
+    setDeleteLoading(userId);
+    try {
+      const response = await fetch(`/api/users?userId=${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete user');
+      }
+
+      await fetchUsers();
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete user');
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -111,20 +140,23 @@ export default function UsersPage() {
     { field: "role", header: "Role" },
     { field: "created_at", header: "Created At" },
     { field: "updated_at", header: "Updated At" },
-    { field: "company", header: "Company" },
+    {
+      field: "company",
+      header: "Company",
+      body: (rowData) => <span>{rowData.company?.name || "N/A"}</span>,
+    },
     {
       field: "id",
       header: "Actions",
-      body: (rowData) => (
-        <RoleBasedRender allowedRoles={["admin"]}>
+      body: (rowData) =>
+        isAdmin ? (
           <Button
             size="sm"
             onClick={() => router.push(`/users/${rowData.id}/edit`)}
           >
             Edit
           </Button>
-        </RoleBasedRender>
-      ),
+        ) : null,
       style: { width: "auto", textAlign: "center" },
     },
   ];
@@ -133,7 +165,7 @@ export default function UsersPage() {
     <>
       <div className="flex items-center justify-between">
         <PageHeader title="User Management" />
-        <RoleBasedRender allowedRoles={["admin"]}>
+        {isAdmin && (
           <div className="px-8 py-4">
             <Button
               size="sm"
@@ -143,7 +175,7 @@ export default function UsersPage() {
               CREATE USER
             </Button>
           </div>
-        </RoleBasedRender>
+        )}
       </div>
       <div className="p-8">
         {error && (
