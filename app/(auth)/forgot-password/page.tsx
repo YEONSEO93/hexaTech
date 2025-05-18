@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
                                     placeholder="Enter personal or work email address"
                                     required
                                 />
-                                <Button type="submit" fullWidth disabled={loading}>
+                                <Button type="submit" fullWidth disabled={loading && !!success}>
                                     {loading ? "Sending..." : "Send Reset Link"}
                                 </Button>
                             </form>
