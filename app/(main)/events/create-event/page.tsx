@@ -5,13 +5,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import EventForm, { EventItem } from "@/components/events/EventForm";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { Database } from "@/types/supabase";
+import { createSupabaseClientComponentClient } from "@/lib/supabase/client";
 import { useUser } from "@/app/context/UserContext";
 
 export default function CreateEventPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createSupabaseClientComponentClient();
 
   const { userRole } = useUser();
 
@@ -100,9 +99,9 @@ export default function CreateEventPage() {
           defaultValues={
             userRole === "collaborator"
               ? {
-                  company_id: companyId ?? undefined,
-                  company_name: companyName,
-                }
+                company_id: companyId ?? undefined,
+                company_name: companyName,
+              }
               : {}
           }
           companyName={companyName}
