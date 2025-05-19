@@ -1,12 +1,19 @@
 // app/(main)/events/page.tsx
 "use client";
 
-import EventList from "@/components/events/EventList";
+import dynamic from "next/dynamic";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/UserContext";
 import { Dashboard } from "@/components/dashboard/Dashboard";
+import LoadingSpinner from "@/components/loading-spinner";
+
+// Dynamic import with loading
+const EventList = dynamic(() => import("@/components/events/EventList"), {
+  loading: () => <LoadingSpinner />,
+  ssr: false,
+});
 
 export default function EventsPage() {
   const { userRole } = useUser();

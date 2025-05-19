@@ -1,15 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import BaseTable, {
-  BaseColumnProps,
-} from "@/components/ui/base-table/base-table";
+import type { BaseColumnProps } from "@/components/ui/base-table/base-table";
 import { Database } from "@/types/supabase";
 import { useAuth } from "@/lib/hooks/useAuth";
+import LoadingSpinner from "@/components/loading-spinner";
 
+// Define user data type from database
 type UserData = Pick<
   Database["public"]["Tables"]["users"]["Row"],
   | "id"
@@ -23,34 +24,50 @@ type UserData = Pick<
   company: { id: number; name: string } | null;
 };
 
+// Dynamic import BaseTable with generic type
+const BaseTable = dynamic<{
+  value: UserData[];
+  columns: BaseColumnProps<UserData>[];
+}>(() => import("@/components/ui/base-table/base-table"), {
+  // Show loading spinner while the component is being loaded
+  loading: () => (
+    <div className="flex items-center justify-center min-h-[400px] bg-white rounded-lg">
+      <LoadingSpinner />
+    </div>
+  ),
+  // Disable server-side rendering for this component
+  ssr: false,
+});
+
 export default function UsersPage() {
   const router = useRouter();
   const { isAdmin } = useAuth();
+  // State management for users data and loading states
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
   const handleDelete = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) {
+    if (!confirm("Are you sure you want to delete this user?")) {
       return;
     }
 
     setDeleteLoading(userId);
     try {
       const response = await fetch(`/api/users?userId=${userId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete user');
+        throw new Error(errorData.error || "Failed to delete user");
       }
 
       await fetchUsers();
     } catch (err) {
-      console.error('Error deleting user:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete user');
+      console.error("Error deleting user:", err);
+      setError(err instanceof Error ? err.message : "Failed to delete user");
     } finally {
       setDeleteLoading(null);
     }
@@ -178,6 +195,7 @@ export default function UsersPage() {
         )}
       </div>
       <div className="p-8">
+        {/* Error message display */}
         {error && (
           <div
             className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
@@ -186,10 +204,21 @@ export default function UsersPage() {
             <span className="font-medium">Error:</span> {error}
           </div>
         )}
-        {loading && <p>Loading...</p>}
-        {!loading && users.length === 0 && !error && <p>No users found.</p>}
-        {!loading && users.length > 0 && (
-          <BaseTable value={users} columns={columns} />
+
+        {/* Conditional rendering based on loading and data state */}
+        {loading ? (
+          // Show loading spinner while fetching data
+          <div className="flex items-center justify-center min-h-[400px] bg-white rounded-lg">
+            <LoadingSpinner />
+          </div>
+        ) : users.length === 0 && !error ? (
+          // Show message when no users found
+          <p>No users found.</p>
+        ) : (
+          // Render BaseTable with users data
+          <div className="relative">
+            <BaseTable value={users} columns={columns} />
+          </div>
         )}
       </div>
     </>

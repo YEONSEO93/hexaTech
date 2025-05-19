@@ -7,6 +7,7 @@ import BaseTable, {
   BaseColumnProps,
 } from "@/components/ui/base-table/base-table";
 import Pagination from "@/components/ui/Pagination";
+import LoadingSpinner from "@/components/loading-spinner";
 
 const PAGE_SIZE = 10;
 
@@ -218,13 +219,22 @@ export default function EventList() {
       : []),
   ];
 
-  if (loading) return <p>Loading events...</p>;
+  if (loading) {
+    return (
+      <div className="relative min-h-[400px]">
+        <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
+
   if (error) return <p className="text-red-600">{error}</p>;
 
   return (
     <div className="p-4 bg-white rounded-lg shadow">
       {userRole !== "collaborator" && (
-        <div>
+        <div className="mb-4">
           <label className="block mb-1 font-medium">Filter by Company</label>
           <select
             value={selectedCompany ?? ""}
@@ -244,7 +254,16 @@ export default function EventList() {
           </select>
         </div>
       )}
-      <BaseTable value={events} columns={columns} />
+
+      <div className="relative">
+        <BaseTable value={events} columns={columns} />
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+            <LoadingSpinner />
+          </div>
+        )}
+      </div>
+
       <Pagination
         page={page}
         pageSize={PAGE_SIZE}
