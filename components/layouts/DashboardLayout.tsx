@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createSupabaseClientComponentClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/supabase";
 
 import { ReactNode } from "react";
@@ -23,7 +23,7 @@ const defaultNavigation = [
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createSupabaseClientComponentClient();
 
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);

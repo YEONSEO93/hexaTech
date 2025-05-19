@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/client';
+import { createSupabaseRouteHandlerClient } from '@/lib/supabase/route';
 import { ExcelRow } from '@/types/excel';
 
 // ---------- CATEGORY ----------
@@ -53,7 +53,7 @@ const SUBCATEGORY_ENUM_VALUES = [
 
 //---------- Supabase Client ----------
 
-const supabase = createAdminClient();
+const supabase = createSupabaseRouteHandlerClient();
 
 export async function POST(req: NextRequest) {
   const rows: ExcelRow[] = await req.json();
