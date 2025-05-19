@@ -1,7 +1,6 @@
 import { createSupabaseRouteHandlerClient } from '@/lib/supabase/route';
 import { NextRequest, NextResponse } from 'next/server';
 import { authorizeRequest } from '@/lib/api/authUtils';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import type { Database } from '@/types/supabase';
 
@@ -20,18 +19,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   try {
     const userIdToFetch = params.id;
     const cookieStore = cookies();
-    const supabaseAdmin = createSupabaseRouteHandlerClient();
-    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
+    const supabase = createSupabaseRouteHandlerClient();
 
     const authResult = await authorizeRequest(request, { 
       allowedRoles: ['admin', 'viewer'], 
       allowSelf: true, 
       targetUserId: userIdToFetch,
-      supabaseClient: supabase 
     });
     if (authResult instanceof NextResponse) return authResult;
 
-    const { data: userData, error: fetchError } = await supabaseAdmin
+    const { data: userData, error: fetchError } = await supabase
       .from('users')
       .select(`
         id, 
@@ -79,16 +76,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const userIdToUpdate = params.id;
-  const supabaseAdmin = createSupabaseRouteHandlerClient(); 
-  const cookieStore = cookies(); 
-  const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore }); 
+  const supabase = createSupabaseRouteHandlerClient(); 
 
   try {
     const authResult = await authorizeRequest(request, { 
       allowedRoles: ['admin'], 
       allowSelf: true,
       targetUserId: userIdToUpdate,
-      supabaseClient: supabase 
     });
     if (authResult instanceof NextResponse) return authResult;
 
@@ -143,7 +137,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'No valid fields provided for update' }, { status: 400 });
     }
 
-    const { data: updatedUser, error: updateError } = await supabaseAdmin
+    const { data: updatedUser, error: updateError } = await supabase
       .from('users')
       .update(dataToUpdate)
       .eq('id', userIdToUpdate)
@@ -163,7 +157,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         return NextResponse.json({ error: 'Password must be at least 6 characters long' }, { status: 400 });
       }
 
-      const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
+      const { error: passwordError } = await supabase.auth.admin.updateUserById(
         userIdToUpdate,
         { password }
       );

@@ -3,8 +3,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import type { Database } from "@/types/supabase";
+import { createSupabaseClientComponentClient } from "@/lib/supabase/client";
 
 type UserContextType = {
   userId: string | null;
@@ -19,7 +18,7 @@ const UserContext = createContext<UserContextType>({
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createSupabaseClientComponentClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);

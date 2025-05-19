@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createSupabaseClientComponentClient } from "@/lib/supabase/client";
 import { Database } from "@/types/supabase";
 import { useUser } from "@/app/context/UserContext"; // get user info from context
 
@@ -72,7 +72,7 @@ export default function EventForm({
   >([]);
 
   useEffect(() => {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createSupabaseClientComponentClient();
 
     const fetchAllOptions = async () => {
       const [

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Database } from '@/types/supabase';
 import { createSupabaseRouteHandlerClient } from '@/lib/supabase/route';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { authorizeRequest } from '@/lib/api/authUtils';
 import { z } from 'zod';
 
@@ -21,20 +19,17 @@ const inviteUserSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const cookieStore = cookies();
-  const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-  const supabaseAdmin = createSupabaseRouteHandlerClient();
+  const supabase = createSupabaseRouteHandlerClient();
 
   try {
     const authResult = await authorizeRequest(request, { 
       allowedRoles: ['admin', 'viewer'],
-      supabaseClient: supabase
     });
     if (authResult instanceof NextResponse) {
       return authResult;
     }
 
-    const { data: users, error: fetchError } = await supabaseAdmin
+    const { data: users, error: fetchError } = await supabase
         .from('users')
         .select(`
           id, 
@@ -64,14 +59,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabaseAdmin = createSupabaseRouteHandlerClient();
-  const cookieStore = cookies();
-  const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
+  const supabase = createSupabaseRouteHandlerClient();
 
   try {
     const authResult = await authorizeRequest(request, { 
         allowedRoles: ['admin'],
-        supabaseClient: supabase
     });
     if (authResult instanceof NextResponse) {
       return authResult;
@@ -96,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     const { name, email, role, company_id, profilePhoto, password } = parsedBody;
 
-    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+    const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
       email,
       {
         data: { 
@@ -133,7 +125,7 @@ export async function POST(request: NextRequest) {
       must_change_password: true 
     };
 
-    const { data: newUser, error: insertError } = await supabaseAdmin
+    const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert(insertData) 
       .select() 
@@ -145,7 +137,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (password) {
-      const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
+      const { error: passwordError } = await supabase.auth.admin.updateUserById(
         invitedUser.id,
         { password }
       );
@@ -171,14 +163,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const supabaseAdmin = createSupabaseRouteHandlerClient();
-  const cookieStore = cookies();
-  const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
+  const supabase = createSupabaseRouteHandlerClient();
 
   try {
     const authResult = await authorizeRequest(request, { 
       allowedRoles: ['admin'],
-      supabaseClient: supabase
     });
     if (authResult instanceof NextResponse) {
       return authResult;
@@ -192,7 +181,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Check if the user exists and is not an admin
-    const { data: userToDelete, error: fetchError } = await supabaseAdmin
+    const { data: userToDelete, error: fetchError } = await supabase
       .from('users')
       .select('role')
       .eq('id', userId)
@@ -212,14 +201,14 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete user from auth
-    const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(userId);
     if (deleteAuthError) {
       console.error('Error deleting user from auth:', deleteAuthError);
       return NextResponse.json({ error: 'Failed to delete user from authentication' }, { status: 500 });
     }
 
     // Delete user from users table
-    const { error: deleteUserError } = await supabaseAdmin
+    const { error: deleteUserError } = await supabase
       .from('users')
       .delete()
       .eq('id', userId);
