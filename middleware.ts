@@ -56,15 +56,10 @@ export async function middleware(request: NextRequest) {
 //------------------------------
     // This is a more specific check for the events API
     if (pathname.startsWith('/api/events')) {
-      const { data: userRecord, error: roleError } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", user.id)
-        .single();
 
-      const userRole = userRecord?.role;
+      const userRole = user?.user_metadata.role;
 
-      if (roleError || !userRole) {
+      if (!userRole) {
         return createErrorResponse("Role not found", 404);
       }
 
@@ -89,16 +84,9 @@ export async function middleware(request: NextRequest) {
       return res;
     }
 
-    // get user role from the database (users table not user_metadata)
-    const { data: userRecord, error: roleError } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const userRole = user?.user_metadata.role;
 
-    const userRole = userRecord?.role;
-
-    if (roleError || !userRole) {
+    if (!userRole) {
       return createErrorResponse("Role not found", 404);
     }
 
