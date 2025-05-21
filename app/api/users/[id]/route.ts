@@ -1,7 +1,6 @@
 import { createSupabaseRouteHandlerClient } from '@/lib/supabase/route';
 import { NextRequest, NextResponse } from 'next/server';
 import { authorizeRequest } from '@/lib/api/authUtils';
-import { cookies } from 'next/headers';
 import type { Database } from '@/types/supabase';
 
 type UserResponse = {
@@ -15,10 +14,10 @@ type UserResponse = {
   profile_photo: string | null;
 };
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const userIdToFetch = params.id;
-    const cookieStore = cookies();
+    const { id } = await params;
+    const userIdToFetch = id;
     const supabase = createSupabaseRouteHandlerClient();
 
     const authResult = await authorizeRequest(request, { 
@@ -74,8 +73,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  const userIdToUpdate = params.id;
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const userIdToUpdate = id;
   const supabase = createSupabaseRouteHandlerClient(); 
 
   try {

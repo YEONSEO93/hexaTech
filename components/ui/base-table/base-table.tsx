@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   ChangeEvent,
+  useCallback,
 } from "react";
 import { FilterMatchMode } from "primereact/api";
 
@@ -216,21 +217,21 @@ export default function BaseTable<T extends Record<string, unknown>>(
   const [selected, setSelected] = useState<SelectedRow>([]);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
 
-  const initFilters = () => {
+  const initFilters = useCallback(() => {
     setFilters(generateFilters(columns));
     setGlobalFilterValue("");
-  };
+  }, [columns]); // Memoize with `columns` as a dependency
 
   useEffect(() => {
     initFilters();
-  }, []);
+  }, [initFilters]);
 
-  const onRowEditComplete = () => {};
+  const onRowEditComplete = () => { };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const onEdit = (rowData: T) => {};
+  const onEdit = (rowData: T) => { };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const onDelete = (rowData: T) => {};
+  const onDelete = (rowData: T) => { };
 
   const clearFilter = () => {
     initFilters();
@@ -319,7 +320,7 @@ export default function BaseTable<T extends Record<string, unknown>>(
                 columnBody
                   ? columnBody
                   : (rowData) =>
-                      renderBodyElement(filterTypeToUse, field, rowData)
+                    renderBodyElement(filterTypeToUse, field, rowData)
               }
             />
           );

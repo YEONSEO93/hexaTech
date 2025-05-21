@@ -31,15 +31,15 @@ async function getUserData(
 }
 
 type UserProfilePageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export default async function UserProfilePage({
   params,
 }: UserProfilePageProps) {
-  const supabase = createSupabaseServerComponentClient();
+  const supabase = await createSupabaseServerComponentClient();
 
   const {
     data: { user },

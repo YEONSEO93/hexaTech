@@ -47,7 +47,7 @@ export function useUserProfile() {
     }
 
     fetchUserProfile();
-  }, []);
+  }, [supabase]);
 
   return { userProfile, loading };
 }

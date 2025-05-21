@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface IconProps {
   className?: string;
   profilePhoto?: string | null;
@@ -6,7 +8,7 @@ interface IconProps {
 export function IconUser({ className = "h-6 w-6", profilePhoto }: IconProps) {
   if (profilePhoto) {
     return (
-      <img
+      <Image
         src={profilePhoto}
         alt="Profile"
         className={`${className} rounded-full object-cover`}

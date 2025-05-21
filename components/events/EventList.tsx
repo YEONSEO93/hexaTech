@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/UserContext";
 import BaseTable, {
@@ -48,7 +48,7 @@ export default function EventList() {
     return formattedDate;
   }
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     setLoading(true);
     const offset = page * PAGE_SIZE;
 
@@ -58,11 +58,11 @@ export default function EventList() {
     setEvents(data.data);
     setTotal(data.total);
     setLoading(false);
-  };
+  }, [page]); // Memoize with `page` as a dependency
 
   useEffect(() => {
     fetchEvents();
-  }, [page]);
+  }, [fetchEvents]);
 
   const handleDelete = async (id: number) => {
     const confirm = window.confirm(
@@ -193,28 +193,28 @@ export default function EventList() {
     },
     ...(userRole !== "viewer"
       ? [
-          {
-            field: "__actions" as keyof EventItem,
-            header: "Actions",
-            body: (row: EventItem) => (
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => router.push(`/events/${row.id}/edit`)}
-                  className="rounded-md bg-[#001F4D] font-semibold text-white hover:bg-[#001F4D]/90 focus:outline-none px-4 py-2 text-sm"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(row.id)}
-                  className="rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
-                >
-                  Delete
-                </button>
-              </div>
-            ),
-            style: { textAlign: "center" as const },
-          },
-        ]
+        {
+          field: "__actions" as keyof EventItem,
+          header: "Actions",
+          body: (row: EventItem) => (
+            <div className="flex items-center justify-center gap-2">
+              <button
+                onClick={() => router.push(`/events/${row.id}/edit`)}
+                className="rounded-md bg-[#001F4D] font-semibold text-white hover:bg-[#001F4D]/90 focus:outline-none px-4 py-2 text-sm"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(row.id)}
+                className="rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          ),
+          style: { textAlign: "center" as const },
+        },
+      ]
       : []),
   ];
 

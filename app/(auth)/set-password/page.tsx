@@ -109,7 +109,7 @@ export default function SetPasswordPage() {
       if (timerId) clearTimeout(timerId);
     };
 
-  }, [supabase, router]);
+  }, [supabase, router, loading]);
 
   const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

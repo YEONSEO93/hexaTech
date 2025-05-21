@@ -30,7 +30,7 @@ const LoginPage = () => {
       }
 
       const { data: signInData, error: signInError } = await signInWithEmail(email.trim(), password.trim());
-      
+
       if (signInError) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const message = (signInError as any)?.message || 'Failed to sign in. Please check your credentials.';
@@ -40,7 +40,7 @@ const LoginPage = () => {
       if (!signInData?.user) {
         throw new Error('Login failed: No user data returned.');
       }
-      
+
       const userRole = signInData.user.role;
       console.log(`Login successful. Role from signInWithEmail: ${userRole}`);
 
@@ -65,7 +65,7 @@ const LoginPage = () => {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="relative hidden bg-muted lg:block">
-        <img
+        <Image
           src="/background.jpg"
           alt="Image"
           className="absolute inset-0 object-cover w-full h-full"

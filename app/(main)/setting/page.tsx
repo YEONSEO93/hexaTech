@@ -3,10 +3,8 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { IconUser } from "@/components/icon/IconUser";
-import { Sidebar } from "@/components/sidebar";
 import { PageHeader } from "@/components/PageHeader";
 import { SettingsLayout } from "@/components/layouts/SettingsLayout";
-import MainLayout from "@/components/layouts/MainLayout";
 
 export default function Setting() {
   return (

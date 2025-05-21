@@ -29,9 +29,10 @@ async function getUserAndRole() {
 
 // GET /api/events/:id
 // Fetches a single event by ID
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, { params }: { params: Promise<Promise<{ id: string }>> }) {
     const supabase = createSupabaseRouteHandlerClient();
-    const eventId = Number(params.id);
+    const {id} = await params;
+    const eventId = Number(id);
   
     if (isNaN(eventId)) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
@@ -61,7 +62,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 // Updates an event by ID
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
 
   const { role, error: roleError } = await getUserAndRole();
@@ -70,7 +71,8 @@ export async function PATCH(
   }
 
   const supabase = createSupabaseRouteHandlerClient();
-  const eventIdRaw = params.id;
+  const { id } = await params;
+  const eventIdRaw = id;
   const payload = await req.json();
 
   const eventId = Number(eventIdRaw);
@@ -112,7 +114,7 @@ export async function PATCH(
 // Deletes an event by ID
 export async function DELETE(
     _: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
   ) {
 
     const { role, error: roleError } = await getUserAndRole();
@@ -121,7 +123,8 @@ export async function DELETE(
     }
 
     const supabase = createSupabaseRouteHandlerClient();
-    const eventIdRaw = params.id;
+    const { id } = await params;
+    const eventIdRaw = id;
   
     const eventId = Number(eventIdRaw);
     if (isNaN(eventId)) {

@@ -4,10 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function ForgotPasswordPage() {
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        //TODO: call API to send user email
-    }
+    // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    //     e.preventDefault()
+    //     //TODO: call API to send user email
+    // }
 
     return (
         <div className="flex min-h-svh flex-col items-center justify-center bg-gray-50 p-6 -mt-32">

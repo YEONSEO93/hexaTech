@@ -53,9 +53,9 @@ const SUBCATEGORY_ENUM_VALUES = [
 
 //---------- Supabase Client ----------
 
-const supabase = createSupabaseRouteHandlerClient();
 
 export async function POST(req: NextRequest) {
+  const supabase = createSupabaseRouteHandlerClient();
   const rows: ExcelRow[] = await req.json();
 
   const results: {
