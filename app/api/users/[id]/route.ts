@@ -9,7 +9,6 @@ type UserResponse = {
   name: string;
   email: string;
   role: Database['public']['Tables']['users']['Row']['role'];
-  company_id: number | null;
   company: { id: number; name: string; } | null;
   createdAt: string;
   profile_photo: string | null;
@@ -18,7 +17,6 @@ type UserResponse = {
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const userIdToFetch = params.id;
-    const cookieStore = cookies();
     const supabase = createSupabaseRouteHandlerClient();
 
     const authResult = await authorizeRequest(request, { 
@@ -61,7 +59,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       name: userData.name,
       email: userData.email,
       role: userData.role,
-      company_id: userData.company_id,
       company: userData.company,
       createdAt: userData.created_at,
       profile_photo: userData.profile_photo
@@ -123,7 +120,39 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       if (typeof company !== 'string') {
         return NextResponse.json({ error: 'Company must be a string' }, { status: 400 });
       }
-      dataToUpdate.company_id = parseInt(company);
+
+      // check if company exists by checking company table with company name equality 
+      const { data: companyData, error: companyError } = await supabase
+        .from('company')
+        .select('id')
+        .eq('name', company)
+        .single();
+      
+        //if company exists, get the id and update dataToUpdate.company_id. if company does not exist, create a new company in the company table and get the id
+      if (companyError) {
+        if (companyError.code === 'PGRST116') {
+          // company not found, create a new one
+          const { data: newCompany, error: createCompanyError } = await supabase
+            .from('company')
+            .insert({ name: company })
+            .select('id')
+            .single();
+
+          if (createCompanyError) {
+            console.error('Failed to create new company:', createCompanyError);
+            return NextResponse.json({ error: 'Failed to create new company' }, { status: 500 });
+          }
+
+          dataToUpdate.company_id = newCompany.id;
+        }
+      }
+      else {
+        // company found, update dataToUpdate.company_id
+        if (!companyData) {
+          return NextResponse.json({ error: 'Company not found' }, { status: 404 });
+        }
+        dataToUpdate.company_id = companyData.id;
+      }
     }
 
     if (profilePhoto !== undefined) {
@@ -141,7 +170,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       .from('users')
       .update(dataToUpdate)
       .eq('id', userIdToUpdate)
-      .select('id, name, email, role, company, profile_photo, updated_at')
+      .select('id, name, email, role, company_id, profile_photo, updated_at')
       .single();
 
     if (updateError) {
@@ -180,3 +209,62 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 //DELETE
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const userIdToDelete = params.id;
+  const supabase = createSupabaseRouteHandlerClient();
+
+  try {
+    const authResult = await authorizeRequest(request, { 
+      allowedRoles: ['admin'], 
+      allowSelf: true,
+      targetUserId: userIdToDelete,
+    });
+    if (authResult instanceof NextResponse) return authResult;
+
+    const { data: userToDelete, error: fetchError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', userIdToDelete)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching user:', fetchError);
+      return NextResponse.json({ error: 'Failed to fetch user details' }, { status: 500 });
+    }
+
+    if (!userToDelete) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    if (userToDelete.role === 'admin') {
+      return NextResponse.json({ error: 'Cannot delete admin users' }, { status: 403 });
+    }
+
+    // Delete user from auth
+    const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(userIdToDelete);
+    if (deleteAuthError) {
+      console.error('Error deleting user from auth:', deleteAuthError);
+      return NextResponse.json({ error: 'Failed to delete user from authentication' }, { status: 500 });
+    }
+      
+    // Delete user from users table
+    const { error: deleteUserError } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userIdToDelete);
+
+    if (deleteUserError) {
+      console.error('Error deleting user from database:', deleteUserError);
+      return NextResponse.json({ error: 'Failed to delete user from database' }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'User deleted successfully' }, { status: 200 });
+
+  } catch (error) {
+    console.error('Request failed in DELETE /api/users:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

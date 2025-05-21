@@ -17,6 +17,7 @@ type UserData = Pick<
   | "role"
   | "created_at"
   | "company_id"
+  | "company"
   | "updated_at"
   | "profile_photo"
 > & {
