@@ -15,7 +15,7 @@ const ROLES = {
   VIEWER: 'viewer'
 } as const;
 
-const restrictedMethods = ['POST', 'PUT', 'DELETE'];
+const restrictedMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
 const isAdminOrViewer = (role: string) => role === ROLES.ADMIN || role === ROLES.VIEWER;
 
@@ -45,7 +45,7 @@ export async function middleware(request: NextRequest) {
 
     //Also refer to Supabase Auth docs (Hook up middleware section): https://supabase.com/docs/guides/auth/server-side/nextjs 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-
+    
     if (userError || !user) {
       console.error('Authentication error:', userError);
       if (!isPathInRoutes(pathname, ROUTES.AUTH)) {
@@ -53,54 +53,14 @@ export async function middleware(request: NextRequest) {
       }
       return res;
     }
-//------------------------------
-    // This is a more specific check for the events API
-    if (pathname.startsWith('/api/events')) {
-      const { data: userRecord, error: roleError } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", user.id)
-        .single();
 
-      const userRole = userRecord?.role;
+    const userRole = user.user_metadata.role;
 
-      if (roleError || !userRole) {
-        return createErrorResponse("Role not found", 404);
-      }
-
-      // block viewer from modifying events
-      if (
-        ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method) &&
-        userRole === ROLES.VIEWER
-      ) {
-        return createErrorResponse("Viewers cannot modify events", 403);
-      }
-
-      return res;
-    }
-//---------------------------
-
-    if (pathname.startsWith('/api/')) {
-
-      if (restrictedMethods.includes(request.method) && user.user_metadata.role === ROLES.VIEWER) {
-        return createErrorResponse('Viewers are not allowed to perform this action', 403);
-      }
-
-      return res;
-    }
-
-    // get user role from the database (users table not user_metadata)
-    const { data: userRecord, error: roleError } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    const userRole = userRecord?.role;
-
-    if (roleError || !userRole) {
+    if (!userRole) {
       return createErrorResponse("Role not found", 404);
     }
+
+    /* -----------Add check for page routes ---------*/
 
     //Add check to handle root URL redirect
     if (pathname === "/" || isPathInRoutes(pathname, ROUTES.AUTH)) {
@@ -110,6 +70,14 @@ export async function middleware(request: NextRequest) {
       return createRedirectResponse(request, '/events');
     }
 
+    if (pathname.startsWith('/users/')) {
+      const pathParts = pathname.split('/');
+      const userIdFromPath = pathParts[2];
+      if (userIdFromPath === user.id) {
+        return res;
+      }
+    }
+
     if (isPathInRoutes(pathname, ROUTES.ADMIN_ONLY) && userRole !== ROLES.ADMIN) {
       //Let it go to the root and redirect based on our role check above (user roles could be either Viewer or Collaborator)
       return createRedirectResponse(request, '/');
@@ -117,6 +85,24 @@ export async function middleware(request: NextRequest) {
 
     if (isPathInRoutes(pathname, ROUTES.ADMIN_VIEWER) && !isAdminOrViewer(userRole)) {
       return createRedirectResponse(request, '/events');
+    }
+
+
+    /* -----------Add check for API routes ---------*/
+    if (pathname.startsWith('/api/')) {
+    
+      // Block viewers from any restricted method across all APIs
+      if (restrictedMethods.includes(request.method) && userRole === ROLES.VIEWER) {
+        return createErrorResponse('Viewers are not allowed to perform this action', 403);
+      }
+      
+      // Block collaborators from accessing non-events APIs
+      if (!pathname.startsWith('/api/events') && userRole === ROLES.COLLABORATOR) {
+        return createErrorResponse('Collaborators can only access events API', 403);
+      }
+      
+      // Admin has full access, so we don't need additional checks
+      return res;
     }
 
     return res;
