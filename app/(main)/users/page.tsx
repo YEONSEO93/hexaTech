@@ -38,7 +38,7 @@ export default function UsersPage() {
 
     setDeleteLoading(userId);
     try {
-      const response = await fetch(`/api/users?userId=${userId}`, {
+      const response = await fetch(`/api/users/${userId}`, {
         method: 'DELETE',
       });
 
@@ -160,6 +160,8 @@ export default function UsersPage() {
             <Button
               size="sm"
               onClick={() => handleDelete(rowData.id)}
+              className="rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
+
             >
               Delete
             </Button>
