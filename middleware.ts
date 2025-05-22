@@ -4,7 +4,8 @@ import type { NextRequest } from 'next/server';
 import type { Database } from '@/types/supabase';
 
 const ROUTES = {
-  AUTH: ['/login', '/set-password'],
+  //remove set-password from the list of auth routes, as following invite link will log user in but they should not be redirected to home page yet 
+  AUTH: ['/login'],
   ADMIN_ONLY: ['/users/create'],
   ADMIN_VIEWER: ['/dashboard', '/users']
 } as const;
