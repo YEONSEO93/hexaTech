@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   ChangeEvent,
+  useRef,
 } from "react";
 import { FilterMatchMode } from "primereact/api";
 
@@ -215,6 +216,8 @@ export default function BaseTable<T extends Record<string, unknown>>(
   const [filters, setFilters] = useState<FiltersObject>({});
   const [selected, setSelected] = useState<SelectedRow>([]);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const dt = useRef(null);
+
 
   const initFilters = () => {
     setFilters(generateFilters(columns));
@@ -225,12 +228,12 @@ export default function BaseTable<T extends Record<string, unknown>>(
     initFilters();
   }, []);
 
-  const onRowEditComplete = () => {};
+  const onRowEditComplete = () => { };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const onEdit = (rowData: T) => {};
+  const onEdit = (rowData: T) => { };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const onDelete = (rowData: T) => {};
+  const onDelete = (rowData: T) => { };
 
   const clearFilter = () => {
     initFilters();
@@ -260,6 +263,7 @@ export default function BaseTable<T extends Record<string, unknown>>(
           outlined
           onClick={clearFilter}
         />
+        <Button type="button" icon="pi pi-file" rounded onClick={() => exportCSV(false)} data-pr-tooltip="CSV" />
         <IconField iconPosition="left">
           <InputIcon className="pi pi-search" />
           <InputText
@@ -277,8 +281,13 @@ export default function BaseTable<T extends Record<string, unknown>>(
     (key) => key !== "global"
   );
 
+  const exportCSV = (selectionOnly: any) => {
+    dt?.current?.exportCSV({ selectionOnly });
+  };
+
   return (
     <DataTable
+      ref={dt}
       value={hasDateFields(columns) ? convertDateData(value) : value}
       header={header}
       globalFilterFields={globalFilterFields}
@@ -319,7 +328,7 @@ export default function BaseTable<T extends Record<string, unknown>>(
                 columnBody
                   ? columnBody
                   : (rowData) =>
-                      renderBodyElement(filterTypeToUse, field, rowData)
+                    renderBodyElement(filterTypeToUse, field, rowData)
               }
             />
           );
