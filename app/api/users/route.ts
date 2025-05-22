@@ -10,9 +10,9 @@ const inviteUserSchema = z.object({
   role: z.enum(['admin', 'collaborator', 'viewer'], {
     errorMap: () => ({ message: "Invalid role provided. Must be 'admin', 'collaborator', or 'viewer'." }) 
   }),
-  company_id: z.number({
-    required_error: "Company ID is required",
-    invalid_type_error: "Company ID must be a number"
+  company: z.string({
+    required_error: "Company name is required",
+    invalid_type_error: "Company name must be a string"
   }),
   profilePhoto: z.string().optional(),
   password: z.string().min(6, { message: "Password must be at least 6 characters long" }).optional()
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request body. Expected JSON.' }, { status: 400 });
     }
 
-    const { name, email, role, company_id, profilePhoto, password } = parsedBody;
+    const { name, email, role, company, profilePhoto, password } = parsedBody;
 
     const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
       email,
@@ -114,6 +114,41 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to get user data after invitation' }, { status: 500 });
     }
     const invitedUser = inviteData.user;
+    let company_id = null; 
+
+     // check if company exists by checking company table with company name equality 
+      const { data: companyData, error: companyError } = await supabase
+        .from('company')
+        .select('id')
+        .eq('name', company)
+        .single();
+      
+      //if company exists, get the id and update dataToUpdate.company_id. if company does not exist, create a new company in the company table and get the id
+      if (companyError) {
+        if (companyError.code === 'PGRST116') {
+          // company not found, create a new one
+          const { data: newCompany, error: createCompanyError } = await supabase
+            .from('company')
+            .insert({ name: company })
+            .select('id')
+            .single();
+
+          if (createCompanyError) {
+            console.error('Failed to create new company:', createCompanyError);
+            return NextResponse.json({ error: 'Failed to create new company' }, { status: 500 });
+          }
+
+          company_id = newCompany.id;
+        }
+      }
+       else {
+        // company found, update dataToUpdate.company_id
+        if (!companyData) {
+          return NextResponse.json({ error: 'Company not found' }, { status: 404 });
+        }
+        company_id = companyData.id;
+      }
+    
 
     const insertData: Database['public']['Tables']['users']['Insert'] = {
       id: invitedUser.id, 
