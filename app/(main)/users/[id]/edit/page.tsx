@@ -11,7 +11,7 @@ type UserData = {
   name: string;
   email: string;
   role: string;
-  company: string;
+  company: { name: string; id: number } | null;
   createdAt: string;
   profile_photo: string | null;
 };
@@ -287,7 +287,7 @@ export default function EditUser() {
                   type="text"
                   id="company"
                   name="company"
-                  value={formData.company || ''}
+                  value={formData.company?.name || ''}
                   onChange={handleInputChange}
                   required
                   disabled={isEmailOnlyEditable}
