@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../public/themes/theme.css";
 
 html {
   font-size: 14px;
