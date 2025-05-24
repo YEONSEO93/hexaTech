@@ -18,6 +18,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import {
+  NameType,
+  ValueType,
+} from "recharts/types/component/DefaultTooltipContent";
+
 type Event = {
   id: number;
   name: string;
@@ -69,13 +74,29 @@ export default function DashboardPage() {
   // Monthly trend data
   const monthlyTrend = events.reduce((acc, event) => {
     if (event.start_date) {
-      const month = new Date(event.start_date).toLocaleString("default", {
-        month: "short",
-      });
-      acc[month] = (acc[month] || 0) + 1;
+      const date = new Date(event.start_date);
+      const monthKey = date.toISOString().substring(0, 7); // Keep YYYY-MM for sorting
+      const monthDisplay = String(date.getMonth() + 1).padStart(2, "0");
+      // Australian date format for tooltip
+      const fullDate = `${monthDisplay}/${date.getFullYear()}`;
+
+      acc[monthKey] = {
+        display: monthDisplay, // Only show month in axis
+        fullDate, // For tooltip
+        count: (acc[monthKey]?.count || 0) + 1,
+      };
     }
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<string, { display: string; fullDate: string; count: number }>);
+
+  // Sort data chronologically (oldest to newest)
+  const sortedMonthlyData = Object.entries(monthlyTrend)
+    .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+    .map(([, data]) => ({
+      month: data.display,
+      fullDate: data.fullDate,
+      count: data.count,
+    }));
 
   // Category distribution
   const categoryData = events.reduce((acc, event) => {
@@ -155,18 +176,34 @@ export default function DashboardPage() {
             Event Trend
           </h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={Object.entries(monthlyTrend).map(([month, count]) => ({
-                month,
-                count,
-              }))}
-            >
+            <LineChart data={sortedMonthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
+              <XAxis dataKey="month" interval={0} tick={{ fontSize: 12 }} />
               <YAxis />
-              <Tooltip />
+              <Tooltip
+                formatter={(
+                  value: ValueType,
+                  name: NameType,
+                  item: {
+                    payload?: {
+                      fullDate: string;
+                    };
+                  }
+                ) => {
+                  if (item?.payload?.fullDate) {
+                    return [`${value} events`, item.payload.fullDate];
+                  }
+                  return ["0 events", ""];
+                }}
+              />
               <Legend />
-              <Line type="monotone" dataKey="count" stroke="#8884d8" />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#8884d8"
+                strokeWidth={2}
+                dot={{ fill: "#8884d8" }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
