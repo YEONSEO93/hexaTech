@@ -18,6 +18,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import {
+  NameType,
+  ValueType,
+} from "recharts/types/component/DefaultTooltipContent";
+
 type Event = {
   id: number;
   name: string;
@@ -30,6 +35,44 @@ type Event = {
   company: { name: string };
   category: { name: string | null };
   sub_category: { name: string | null };
+};
+
+// Brisbane brand colors (based on the brand image)
+const BRISBANE_COLORS = {
+  navy: "#001F4D", // Navy blue (main color) - maintained
+  softPink: "#FF9ECD", // Vibrant pink
+  circuitBlue: "#00D6E1", // Bright cyan blue
+  softYellow: "#FFD034", // Bright yellow
+  mintGreen: "#40E0D0", // Bright mint
+  white: "#FFFFFF", // White
+  background: "#1A1F3B", // Background navy
+};
+
+const PERCENTAGE_THRESHOLD = 5; // 5% threshold for grouping into 'Others'
+
+const processDataWithThreshold = (data: Record<string, number>) => {
+  const total = Object.values(data).reduce((sum, count) => sum + count, 0);
+  const mainData: { name: string; value: number }[] = [];
+  let othersTotal = 0;
+  const othersDetails: { name: string; value: number }[] = [];
+
+  Object.entries(data)
+    .sort((a, b) => b[1] - a[1]) // Sort by value descending
+    .forEach(([name, value]) => {
+      const percentage = (value / total) * 100;
+      if (percentage >= PERCENTAGE_THRESHOLD) {
+        mainData.push({ name, value });
+      } else {
+        othersTotal += value;
+        othersDetails.push({ name, value });
+      }
+    });
+
+  if (othersTotal > 0) {
+    mainData.push({ name: "Others", value: othersTotal });
+  }
+
+  return { mainData, othersDetails };
 };
 
 export default function DashboardPage() {
@@ -69,13 +112,29 @@ export default function DashboardPage() {
   // Monthly trend data
   const monthlyTrend = events.reduce((acc, event) => {
     if (event.start_date) {
-      const month = new Date(event.start_date).toLocaleString("default", {
-        month: "short",
-      });
-      acc[month] = (acc[month] || 0) + 1;
+      const date = new Date(event.start_date);
+      const monthKey = date.toISOString().substring(0, 7); // Keep YYYY-MM for sorting
+      const monthDisplay = String(date.getMonth() + 1).padStart(2, "0");
+      // Australian date format for tooltip
+      const fullDate = `${monthDisplay}/${date.getFullYear()}`;
+
+      acc[monthKey] = {
+        display: monthDisplay, // Only show month in axis
+        fullDate, // For tooltip
+        count: (acc[monthKey]?.count || 0) + 1,
+      };
     }
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<string, { display: string; fullDate: string; count: number }>);
+
+  // Sort data chronologically (oldest to newest)
+  const sortedMonthlyData = Object.entries(monthlyTrend)
+    .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+    .map(([, data]) => ({
+      month: data.display,
+      fullDate: data.fullDate,
+      count: data.count,
+    }));
 
   // Category distribution
   const categoryData = events.reduce((acc, event) => {
@@ -121,7 +180,47 @@ export default function DashboardPage() {
     })
     .slice(0, 6); // Display top 6 upcoming events
 
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+  const { mainData: processedCategoryData, othersDetails: categoryOthers } =
+    processDataWithThreshold(categoryData);
+
+  const processedCollaboratorData = Object.entries(collaboratorData)
+    .filter(([, categories]) => {
+      const total = Object.values(categories).reduce(
+        (sum, count) => sum + count,
+        0
+      );
+      return total >= 3; // Only show companies with 3 or more events
+    })
+    .map(([company, categories]) => {
+      const total = Object.values(categories).reduce(
+        (sum, count) => sum + count,
+        0
+      );
+      let othersTotal = 0;
+      const processedCategories: Record<string, number> = {};
+
+      // Sort categories by count and calculate percentages
+      Object.entries(categories)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([category, count]) => {
+          const percentage = (count / total) * 100;
+          if (percentage >= PERCENTAGE_THRESHOLD) {
+            processedCategories[category] = count;
+          } else {
+            othersTotal += count;
+          }
+        });
+
+      // Add Others category if there are small categories
+      if (othersTotal > 0) {
+        processedCategories["Others"] = othersTotal;
+      }
+
+      return {
+        company,
+        ...processedCategories,
+      };
+    });
 
   return (
     <div className="p-6">
@@ -129,7 +228,10 @@ export default function DashboardPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
-        <div className="p-4 bg-white rounded-lg shadow">
+        <div
+          className="p-4 bg-white rounded-lg shadow"
+          style={{ borderTop: `4px solid ${BRISBANE_COLORS.navy}` }}
+        >
           <h3 className="text-lg font-semibold">Total Events</h3>
           <p className="text-3xl font-bold">{totalEvents}</p>
         </div>
@@ -155,18 +257,51 @@ export default function DashboardPage() {
             Event Trend
           </h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={Object.entries(monthlyTrend).map(([month, count]) => ({
-                month,
-                count,
-              }))}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="count" stroke="#8884d8" />
+            <LineChart data={sortedMonthlyData}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={BRISBANE_COLORS.softPink}
+                opacity={0.1}
+              />
+              <XAxis
+                dataKey="month"
+                interval={0}
+                tick={{ fill: BRISBANE_COLORS.navy, fontSize: 12 }}
+              />
+              <YAxis tick={{ fill: BRISBANE_COLORS.navy }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: BRISBANE_COLORS.white,
+                  borderColor: BRISBANE_COLORS.navy,
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                }}
+                formatter={(
+                  value: ValueType,
+                  name: NameType,
+                  item: {
+                    payload?: {
+                      fullDate: string;
+                    };
+                  }
+                ) => {
+                  if (item?.payload?.fullDate) {
+                    return [`${value} events`, item.payload.fullDate];
+                  }
+                  return ["0 events", ""];
+                }}
+              />
+              <Legend wrapperStyle={{ color: BRISBANE_COLORS.navy }} />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke={BRISBANE_COLORS.navy}
+                strokeWidth={2}
+                dot={{ fill: BRISBANE_COLORS.navy }}
+                activeDot={{
+                  fill: BRISBANE_COLORS.softPink,
+                  stroke: BRISBANE_COLORS.navy,
+                }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -214,32 +349,46 @@ export default function DashboardPage() {
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={Object.entries(categoryData).map(([name, value]) => ({
-                  name,
-                  value,
-                }))}
+                data={processedCategoryData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
                 label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                 outerRadius={80}
-                fill="#8884d8"
                 dataKey="value"
               >
-                {Object.entries(categoryData).map((entry, index) => (
+                {processedCategoryData.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
+                    fill={
+                      [
+                        BRISBANE_COLORS.navy,
+                        BRISBANE_COLORS.circuitBlue,
+                        BRISBANE_COLORS.softYellow,
+                        BRISBANE_COLORS.softPink,
+                        BRISBANE_COLORS.mintGreen,
+                      ][index % 5]
+                    }
                   />
                 ))}
               </Pie>
-              <Legend
-                layout="vertical"
-                align="right"
-                verticalAlign="middle"
-                wrapperStyle={{ paddingLeft: "20px" }}
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: BRISBANE_COLORS.white,
+                  borderColor: BRISBANE_COLORS.navy,
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                }}
+                formatter={(value: number, name: string) => {
+                  if (name === "Others") {
+                    const details = categoryOthers
+                      .map((item) => `${item.name}: ${item.value}`)
+                      .join("\n");
+                    return [`${value} events`, `Details:\n${details}`];
+                  }
+                  return [`${value} events`, name];
+                }}
               />
-              <Tooltip />
+              <Legend wrapperStyle={{ color: BRISBANE_COLORS.navy }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -257,16 +406,26 @@ export default function DashboardPage() {
               layout="vertical"
               margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={BRISBANE_COLORS.softPink}
+                opacity={0.1}
+              />
+              <XAxis type="number" tick={{ fill: BRISBANE_COLORS.navy }} />
               <YAxis
                 type="category"
                 dataKey="name"
                 width={110}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: BRISBANE_COLORS.navy }}
               />
-              <Tooltip />
-              <Bar dataKey="value" fill="#8884d8" barSize={20} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: BRISBANE_COLORS.white,
+                  borderColor: BRISBANE_COLORS.navy,
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                }}
+              />
+              <Bar dataKey="value" fill={BRISBANE_COLORS.navy} barSize={20} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -278,31 +437,47 @@ export default function DashboardPage() {
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
-              data={Object.entries(collaboratorData).map(
-                ([company, categories]) => ({
-                  company,
-                  ...categories,
-                })
-              )}
+              data={processedCollaboratorData}
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="company" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              {/* Create stacked bars for each category */}
-              {Object.keys(
-                events.reduce((acc, event) => {
-                  acc[event.category?.name || "Unknown"] = true;
-                  return acc;
-                }, {} as Record<string, boolean>)
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={BRISBANE_COLORS.softPink}
+                opacity={0.1}
+              />
+              <XAxis
+                dataKey="company"
+                tick={{ fill: BRISBANE_COLORS.navy, fontSize: 12 }}
+              />
+              <YAxis tick={{ fill: BRISBANE_COLORS.navy }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: BRISBANE_COLORS.white,
+                  borderColor: BRISBANE_COLORS.navy,
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                }}
+              />
+              <Legend wrapperStyle={{ color: BRISBANE_COLORS.navy }} />
+              {Array.from(
+                new Set(
+                  processedCollaboratorData.flatMap((data) =>
+                    Object.keys(data).filter((key) => key !== "company")
+                  )
+                )
               ).map((category, index) => (
                 <Bar
                   key={category}
                   dataKey={category}
                   stackId="a"
-                  fill={COLORS[index % COLORS.length]}
+                  fill={
+                    [
+                      BRISBANE_COLORS.navy,
+                      BRISBANE_COLORS.circuitBlue,
+                      BRISBANE_COLORS.softYellow,
+                      BRISBANE_COLORS.softPink,
+                      BRISBANE_COLORS.mintGreen,
+                    ][index % 5]
+                  }
                 />
               ))}
             </BarChart>
@@ -321,11 +496,28 @@ export default function DashboardPage() {
                 .slice(0, 5)
                 .map(([name, count]) => ({ name, count }))}
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#8884d8" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={BRISBANE_COLORS.softPink}
+                opacity={0.1}
+              />
+              <XAxis
+                dataKey="name"
+                tick={{ fill: BRISBANE_COLORS.navy, fontSize: 12 }}
+              />
+              <YAxis tick={{ fill: BRISBANE_COLORS.navy }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: BRISBANE_COLORS.white,
+                  borderColor: BRISBANE_COLORS.navy,
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                }}
+              />
+              <Bar
+                dataKey="count"
+                fill={BRISBANE_COLORS.navy}
+                activeBar={{ fill: BRISBANE_COLORS.softYellow }}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
