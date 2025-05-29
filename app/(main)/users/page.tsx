@@ -9,6 +9,7 @@ import BaseTable, {
 } from "@/components/ui/base-table/base-table";
 import { Database } from "@/types/supabase";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { formatDate } from "@/lib/utils";
 
 type UserData = Pick<
   Database["public"]["Tables"]["users"]["Row"],
@@ -133,13 +134,24 @@ export default function UsersPage() {
       body: (rowData) => (
         <div>
           <span>{rowData.name || "N/A"}</span>
-          <span className="block text-xs text-gray-500">{rowData.id}</span>
         </div>
       ),
     },
     { field: "role", header: "Role" },
-    { field: "created_at", header: "Created At" },
-    { field: "updated_at", header: "Updated At" },
+    {
+      field: "created_at", header: "Created At", body: (rowData) => (
+        <span>
+          {formatDate(rowData.created_at) || "N/A"}
+        </span>
+      )
+    },
+    {
+      field: "updated_at", header: "Updated At", body: (rowData) => (
+        <span>
+          {rowData.updated_at ? formatDate(rowData.updated_at) : "N/A"}
+        </span>
+      )
+    },
     {
       field: "company",
       header: "Company",
