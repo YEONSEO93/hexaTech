@@ -7,7 +7,7 @@ import { SettingsLayout } from "@/components/layouts/SettingsLayout";
 import { useUserProfile } from "@/lib/hooks/useUserProfile";
 import { useState } from "react";
 import FeedbackMessage from "@/components/ui/feedback-message";
-import { validateEmail, validatePassword, validatePasswordMatch } from "@/lib/validate";
+import { validateEmail, validatePassword, validatePasswordMatch } from "@/lib/utils/input-validation";
 
 export default function AccountSetting() {
   const { userProfile } = useUserProfile();

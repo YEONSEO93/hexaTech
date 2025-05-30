@@ -21,7 +21,7 @@ export function Input({
       )}
       <input
         id={id}
-        className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm  ${className} ${props.disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+        className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm  ${className} ${props.disabled ? 'cursor-not-allowed opacity-50 bg-gray-200' : ''}`}
         {...props}
       />
       {helperText && <p className="text-xs text-gray-500">{helperText}</p>}

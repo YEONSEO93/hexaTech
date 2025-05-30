@@ -9,7 +9,7 @@ import BaseTable, {
 } from "@/components/ui/base-table/base-table";
 import { Database } from "@/types/supabase";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils/date";
 
 type UserData = Pick<
   Database["public"]["Tables"]["users"]["Row"],
