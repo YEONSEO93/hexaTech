@@ -6,6 +6,7 @@ type UserProfile = {
   name: string | null;
   company: string | null;
   profile_photo: string | null;
+  email: string | null;
 };
 
 export function useUserProfile() {
@@ -17,7 +18,9 @@ export function useUserProfile() {
     async function fetchUserProfile() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        
+
+        console.log('User:', user);
+
         if (!user) return;
 
         // Execute join query
@@ -28,7 +31,8 @@ export function useUserProfile() {
             profile_photo,
             company:company_id (
               name
-            )
+            ), 
+            email
           `)
           .eq('id', user.id)
           .single();
@@ -37,8 +41,11 @@ export function useUserProfile() {
         setUserProfile({
           name: data?.name ?? null,
           company: data?.company?.name ?? null,
-          profile_photo: data?.profile_photo ?? null
+          profile_photo: data?.profile_photo ?? null,
+          email: data?.email ?? null
         });
+
+        console.log('User Profile:', data, userProfile);
       } catch (error) {
         console.error('Error:', error);
       } finally {
@@ -47,7 +54,7 @@ export function useUserProfile() {
     }
 
     fetchUserProfile();
-  }, []);
+  }, [supabase]);
 
   return { userProfile, loading };
 }

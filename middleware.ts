@@ -46,7 +46,7 @@ export async function middleware(request: NextRequest) {
 
     //Also refer to Supabase Auth docs (Hook up middleware section): https://supabase.com/docs/guides/auth/server-side/nextjs 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+
     if (userError || !user) {
       console.error('Authentication error:', userError);
       if (!isPathInRoutes(pathname, ROUTES.AUTH)) {
@@ -91,17 +91,22 @@ export async function middleware(request: NextRequest) {
 
     /* -----------Add check for API routes ---------*/
     if (pathname.startsWith('/api/')) {
-    
+
+      // Allow all users to access /api/settings/account
+      if (pathname.startsWith('/api/settings/account')) {
+        return res;
+      }
+
       // Block viewers from any restricted method across all APIs
       if (restrictedMethods.includes(request.method) && userRole === ROLES.VIEWER) {
         return createErrorResponse('Viewers are not allowed to perform this action', 403);
       }
-      
+
       // Block collaborators from accessing non-events APIs
       if (!pathname.startsWith('/api/events') && userRole === ROLES.COLLABORATOR) {
         return createErrorResponse('Collaborators can only access events API', 403);
       }
-      
+
       // Admin has full access, so we don't need additional checks
       return res;
     }

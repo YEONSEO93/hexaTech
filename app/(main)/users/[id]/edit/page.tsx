@@ -187,7 +187,7 @@ export default function EditUser() {
 
   return (
     <>
-      <PageHeader title={`Edit User: ${user?.name || id}`} />
+      {user?.name && <PageHeader title={`Edit User: ${user?.name}`} />}
       <div className="p-8">
         {loading && <p>Loading user data...</p>}
         {error && <p className="mb-4 text-red-500">Error: {error}</p>}
