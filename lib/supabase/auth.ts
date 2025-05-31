@@ -1,3 +1,4 @@
+import { createSupabaseAdminClient } from './admin';
 import { createSupabaseClientComponentClient } from './client';
 
 export type UserRole = 'admin' | 'collaborator' | 'viewer';
@@ -167,3 +168,20 @@ export const resetPassword = async (email: string): Promise<{ success: boolean; 
     return { success: false, error: 'Failed to reset password' };
   }
 };
+
+export const resendInviteLink = async (email: string): Promise<{ success: boolean; error?: string }> => {
+  const supabaseAdmin = createSupabaseAdminClient();
+  
+  try {
+    const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {redirectTo: `${window.location.origin}/set-password` });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Resend invite link error:', error);
+    return { success: false, error: 'Failed to resend invite link' };
+  }
+}
