@@ -42,12 +42,9 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   try {
-    //To check if user is logged in, we can use getUser() method directly, as it only returns a user if there is a valid session token. This way, we can also check the role with user.role without a database query
-
-    //Also refer to Supabase Auth docs (Hook up middleware section): https://supabase.com/docs/guides/auth/server-side/nextjs 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { session }, error: userError } = await supabase.auth.getSession();
     
-    if (userError || !user) {
+    if (userError || !session?.user) {
       console.error('Authentication error:', userError);
       if (!isPathInRoutes(pathname, ROUTES.AUTH)) {
         return createRedirectResponse(request, '/login');
@@ -55,7 +52,7 @@ export async function middleware(request: NextRequest) {
       return res;
     }
 
-    const userRole = user.user_metadata.role;
+    const userRole = session.user.user_metadata.role;
 
     if (!userRole) {
       return createErrorResponse("Role not found", 404);
@@ -74,7 +71,7 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/users/')) {
       const pathParts = pathname.split('/');
       const userIdFromPath = pathParts[2];
-      if (userIdFromPath === user.id) {
+      if (userIdFromPath === session.user.id) {
         return res;
       }
     }
