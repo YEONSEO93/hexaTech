@@ -130,19 +130,16 @@ export default function UsersPage() {
       field: "name",
       header: "Name",
       sortable: true,
-      body: (rowData) => (
-        <div>
-          <span>{rowData.name || "N/A"}</span>
-          <span className="block text-xs text-gray-500">{rowData.id}</span>
-        </div>
-      ),
+      filter: true,
+
     },
     { field: "role", header: "Role" },
-    { field: "created_at", header: "Created At" },
-    { field: "updated_at", header: "Updated At" },
+    { field: "created_at", header: "Created At", sortable: true, filter: true, filterType: "date" },
+    { field: "updated_at", header: "Updated At", sortable: true, filter: true, filterType: "date" },
     {
       field: "company",
       header: "Company",
+      sortable: true,
       body: (rowData) => <span>{rowData.company?.name || "N/A"}</span>,
     },
     {

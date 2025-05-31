@@ -170,7 +170,6 @@ export default function EventList() {
     {
       field: "company.name",
       header: "Company",
-      filter: true,
       sortable: true,
       body: (row) => <span>{row.company?.name ?? "-"}</span>,
     },
@@ -193,28 +192,28 @@ export default function EventList() {
     },
     ...(userRole !== "viewer"
       ? [
-          {
-            field: "__actions" as keyof EventItem,
-            header: "Actions",
-            body: (row: EventItem) => (
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => router.push(`/events/${row.id}/edit`)}
-                  className="rounded-md bg-[#001F4D] font-semibold text-white hover:bg-[#001F4D]/90 focus:outline-none px-4 py-2 text-sm"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(row.id)}
-                  className="rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
-                >
-                  Delete
-                </button>
-              </div>
-            ),
-            style: { textAlign: "center" as const },
-          },
-        ]
+        {
+          field: "__actions" as keyof EventItem,
+          header: "Actions",
+          body: (row: EventItem) => (
+            <div className="flex items-center justify-center gap-2">
+              <button
+                onClick={() => router.push(`/events/${row.id}/edit`)}
+                className="rounded-md bg-[#001F4D] font-semibold text-white hover:bg-[#001F4D]/90 focus:outline-none px-4 py-2 text-sm"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(row.id)}
+                className="rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          ),
+          style: { textAlign: "center" as const },
+        },
+      ]
       : []),
   ];
 
