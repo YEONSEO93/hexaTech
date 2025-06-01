@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createSupabaseRouteHandlerClient();
 
-    // 인증 체크 추가
+
     const authResult = await authorizeRequest(request, {
       allowedRoles: ["admin", "viewer", "collaborator"],
     });
@@ -27,7 +27,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // companies 키로 응답 데이터 반환
     return NextResponse.json({ companies: data });
   } catch (error) {
     console.error("Error in GET /api/companies:", error);
@@ -42,11 +41,11 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = createSupabaseRouteHandlerClient();
 
-    // 인증 체크 추가
     const authResult = await authorizeRequest(request, {
       allowedRoles: ["admin"],
     });
     if (authResult instanceof NextResponse) return authResult;
+  
 
     const { name } = await request.json();
 
@@ -56,7 +55,22 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    const { data: existingCompany } = await supabase
+    .from("company")
+    .select("id, name")
+    .eq("name", name.trim())
+    .single();
 
+
+  if (existingCompany) {
+    return NextResponse.json(
+      { 
+        error: "Company already exists",
+        existingCompany  
+      },
+      { status: 409 }
+    );
+  }
     const { data, error } = await supabase
       .from("company")
       .insert({ name: name.trim() })

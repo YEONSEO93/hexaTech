@@ -66,15 +66,25 @@ export function CompanySelect({ value, onChange }: CompanySelectProps) {
         body: JSON.stringify({ name: newCompanyName }),
       });
 
-      if (!response.ok) throw new Error("Failed to create company");
+      const data = await response.json();
 
-      const { company } = await response.json();
-      setCompanies([...companies, company]);
-      onChange(company.id);
+      if (!response.ok) {
+        if (response.status === 409 && data.existingCompany) {
+          onChange(data.existingCompany.id);
+          setShowAddNew(false);
+          setNewCompanyName("");
+          setError("Company already exists. Selected existing company.");
+          return;
+        }
+        throw new Error(data.error || "Failed to create company");
+      }
+
+      setCompanies([...companies, data.company]);
+      onChange(data.company.id);
       setShowAddNew(false);
       setNewCompanyName("");
     } catch (err) {
-      setError("Failed to create company");
+      setError(err instanceof Error ? err.message : "Failed to create company");
       console.error(err);
     } finally {
       setCreating(false);
@@ -82,10 +92,10 @@ export function CompanySelect({ value, onChange }: CompanySelectProps) {
   };
 
   if (loading) return <div className="text-gray-500">Loading companies...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="relative" ref={dropdownRef}>
+      {error && <div className="text-red-500 mb-2">{error}</div>}
       {/* Select Button */}
       <button
         type="button"
