@@ -14,10 +14,7 @@ const inviteUserSchema = z.object({
         "Invalid role provided. Must be 'admin', 'collaborator', or 'viewer'.",
     }),
   }),
-  company: z.string({
-    required_error: "Company name is required",
-    invalid_type_error: "Company name must be a string",
-  }),
+  company_id: z.number(),
   profilePhoto: z.string().optional(),
   password: z
     .string()
@@ -68,16 +65,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const supabase = createSupabaseRouteHandlerClient();
-  // Create an admin client for admin-specific operations
   const supabaseAdmin = createSupabaseAdminClient();
 
   try {
     const authResult = await authorizeRequest(request, {
       allowedRoles: ["admin"],
     });
-    if (authResult instanceof NextResponse) {
-      return authResult;
-    }
+    if (authResult instanceof NextResponse) return authResult;
 
     let parsedBody;
     try {
@@ -86,8 +80,7 @@ export async function POST(request: NextRequest) {
 
       if (!validationResult.success) {
         const errors = validationResult.error.flatten().fieldErrors;
-        const firstError =
-          Object.values(errors).flat()[0] || "Invalid input data.";
+        const firstError = Object.values(errors).flat()[0] || "Invalid input data.";
         console.warn("User input validation failed:", errors);
         return NextResponse.json({ error: firstError }, { status: 400 });
       }
@@ -100,7 +93,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, email, role, company, profilePhoto, password } = parsedBody;
+    const { name, email, role, company_id, profilePhoto, password } = parsedBody;
 
     const { data: inviteData, error: inviteError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
@@ -142,45 +135,22 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+    
     const invitedUser = inviteData.user;
-    let company_id = null;
 
-    // check if company exists by checking company table with company name equality
+
     const { data: companyData, error: companyError } = await supabase
       .from("company")
       .select("id")
-      .eq("name", company)
+      .eq("id", company_id)  
       .single();
 
-    //if company exists, get the id and update dataToUpdate.company_id. if company does not exist, create a new company in the company table and get the id
-    if (companyError) {
-      if (companyError.code === "PGRST116") {
-        // company not found, create a new one
-        const { data: newCompany, error: createCompanyError } = await supabase
-          .from("company")
-          .insert({ name: company })
-          .select("id")
-          .single();
-
-        if (createCompanyError) {
-          console.error("Failed to create new company:", createCompanyError);
-          return NextResponse.json(
-            { error: "Failed to create new company" },
-            { status: 500 }
-          );
-        }
-
-        company_id = newCompany.id;
-      }
-    } else {
-      // company found, update dataToUpdate.company_id
-      if (!companyData) {
-        return NextResponse.json(
-          { error: "Company not found" },
-          { status: 404 }
-        );
-      }
-      company_id = companyData.id;
+    if (companyError || !companyData) {
+      console.error("Invalid company_id:", company_id);
+      return NextResponse.json(
+        { error: "Invalid company ID provided" },
+        { status: 400 }
+      );
     }
 
     const insertData: Database["public"]["Tables"]["users"]["Insert"] = {
@@ -188,7 +158,7 @@ export async function POST(request: NextRequest) {
       email: invitedUser.email!,
       name: name,
       role: role,
-      company_id: company_id,
+      company_id: company_id, 
       profile_photo: profilePhoto,
       must_change_password: true,
     };

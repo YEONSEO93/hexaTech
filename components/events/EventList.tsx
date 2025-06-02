@@ -88,7 +88,13 @@ export default function EventList() {
   useEffect(() => {
     fetch("/api/companies")
       .then((res) => res.json())
-      .then((data) => setCompanyOptions(data));
+      .then((data) => {
+        setCompanyOptions(data.companies || []);
+      })
+      .catch((error) => {
+        console.error("Error fetching companies:", error);
+        setCompanyOptions([]);
+      });
   }, []);
 
   useEffect(() => {
@@ -236,11 +242,12 @@ export default function EventList() {
             className="w-full border rounded px-3 py-2 bg-white"
           >
             <option value="">All Companies</option>
-            {companyOptions.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
+            {Array.isArray(companyOptions) &&
+              companyOptions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
           </select>
         </div>
       )}

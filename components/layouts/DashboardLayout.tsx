@@ -25,7 +25,7 @@ const defaultNavigation = [
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const supabase = createSupabaseClientComponentClient();
 
-  const [userId, setUserId] = useState<string | null>(null);
+  // const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,7 +36,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       } = await supabase.auth.getUser();
 
       if (user) {
-        setUserId(user.id);
+        // setUserId(user.id);
 
         const { data: userRecord, error } = await supabase
           .from("users")
@@ -82,14 +82,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       .map((item) => ({ ...item }));
 
     console.log("userRole:" + userRole);
-    if (userRole === "collaborator" && userId) {
-      navigationItems.push({
-        name: "My Profile",
-        href: `/users/${userId}/edit`,
-        roles: ["collaborator"],
-      });
-      console.log(navigationItems);
-    }
+    // if (userRole === "collaborator" && userId) {
+    //   navigationItems.push({
+    //     name: "My Profile",
+    //     href: `/users/${userId}/edit`,
+    //     roles: ["collaborator"],
+    //   });
+    //   console.log(navigationItems);
+    // }
   }
 
   return (
