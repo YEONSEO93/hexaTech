@@ -157,11 +157,11 @@ export default function UsersPage() {
       header: "Company",
       body: (rowData) => <span>{rowData.company?.name || "N/A"}</span>,
     },
-    {
-      field: "id",
-      header: "Actions",
-      body: (rowData) =>
-        isAdmin ? (
+    ...(isAdmin
+      ? [{
+        field: "actions",
+        header: "Actions",
+        body: (rowData: UserData) => (
           <div className="flex items-center justify-center gap-2">
             <Button
               size="sm"
@@ -173,14 +173,14 @@ export default function UsersPage() {
               size="sm"
               onClick={() => handleDelete(rowData.id)}
               className="rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
-
             >
               Delete
             </Button>
           </div>
-        ) : null,
-      style: { width: "auto", textAlign: "center" },
-    },
+        ),
+        style: { width: "auto", textAlign: "center" },
+      }] as BaseColumnProps<UserData>[]
+      : []),
   ];
 
   return (
