@@ -7,13 +7,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { CompanySelect } from "@/components/CompanySelect";
 
 export default function CreateUserPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("collaborator");
-  const [company, setCompany] = useState("");
+  const [companyId, setCompanyId] = useState<number>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,34 +23,45 @@ export default function CreateUserPage() {
     setError(null);
     setLoading(true);
 
-    if (!name || !email || !company || !role) {
+    if (!name || !email || !companyId || !role) {
       setError("Please fill in all fields.");
       setLoading(false);
       return;
     }
 
-    const userData = { name, email, role, company };
+    const userData = {
+      name,
+      email,
+      role,
+      company_id: companyId,
+    };
 
     try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
+      const response = await fetch("/api/users", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(userData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to create user: ${response.statusText} (${response.status})`);
+        throw new Error(
+          errorData.error ||
+            `Failed to create user: ${response.statusText} (${response.status})`
+        );
       }
 
-      alert('User created successfully!');
-      router.push('/users');
-
+      alert("User created successfully!");
+      router.push("/users");
     } catch (err) {
       console.error("Error creating user:", err);
-      setError(err instanceof Error ? err.message : "An unknown error occurred during user creation.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An unknown error occurred during user creation."
+      );
     } finally {
       setLoading(false);
     }
@@ -84,11 +96,7 @@ export default function CreateUserPage() {
             </div>
             <div>
               <Label htmlFor="role">Role</Label>
-              <Select
-                value={role}
-                onValueChange={setRole}
-                required
-              >
+              <Select value={role} onValueChange={setRole} required>
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
@@ -100,14 +108,7 @@ export default function CreateUserPage() {
             </div>
             <div>
               <Label htmlFor="company">Company</Label>
-              <Input
-                id="company"
-                type="text"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                placeholder="Enter company name"
-                required
-              />
+              <CompanySelect value={companyId} onChange={setCompanyId} />
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
@@ -121,11 +122,8 @@ export default function CreateUserPage() {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-              >
-                {loading ? 'Creating...' : 'Create User'}
+              <Button type="submit" disabled={loading}>
+                {loading ? "Creating..." : "Create User"}
               </Button>
             </div>
           </form>
