@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createSupabaseClientComponentClient } from '@/lib/supabase/client';
 
 // Define type for actual use
 type UserProfile = {
+  id: string;
   name: string | null;
   company: string | null;
   profile_photo: string | null;
+  email: string | null;
 };
 
 export function useUserProfile() {
@@ -13,41 +15,43 @@ export function useUserProfile() {
   const [loading, setLoading] = useState(true);
   const supabase = createSupabaseClientComponentClient();
 
-  useEffect(() => {
-    async function fetchUserProfile() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) return;
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-        // Execute join query
-        const { data } = await supabase
-          .from('users')
-          .select(`
-            name,
-            profile_photo,
-            company:company_id (
-              name
-            )
-          `)
-          .eq('id', user.id)
-          .single();
+      const { data } = await supabase
+        .from('users')
+        .select(`
+          id,
+          name,
+          profile_photo,
+          company:company_id (
+            name
+          ), 
+          email
+        `)
+        .eq('id', user.id)
+        .single();
 
-        // Transform data
-        setUserProfile({
-          name: data?.name ?? null,
-          company: data?.company?.name ?? null,
-          profile_photo: data?.profile_photo ?? null
-        });
-      } catch (error) {
-        console.error('Error:', error);
-      } finally {
-        setLoading(false);
-      }
+      setUserProfile({
+        id: user.id,
+        name: data?.name ?? null,
+        company: data?.company?.name ?? null,
+        profile_photo: data?.profile_photo ?? null,
+        email: data?.email ?? null
+      });
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
     }
+  }, [supabase]);
 
+  useEffect(() => {
     fetchUserProfile();
-  }, []);
+  }, [fetchUserProfile]);
 
-  return { userProfile, loading };
+  return { userProfile, loading, refetch: fetchUserProfile };
 }

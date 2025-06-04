@@ -140,6 +140,19 @@ export async function PATCH(
         );
       }
       dataToUpdate.email = email.trim();
+
+      const { error: emailError } =
+        await supabaseAdmin.auth.admin.updateUserById(userIdToUpdate, {
+          email: dataToUpdate.email,
+        });
+
+      if (emailError) {
+        console.error("Failed to update email:", emailError);
+        return NextResponse.json(
+          { error: "Failed to update email" },
+          { status: 500 }
+        );
+      }
     }
 
     if (role !== undefined) {

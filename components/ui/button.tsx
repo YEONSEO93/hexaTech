@@ -1,7 +1,7 @@
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
   size?: "sm" | "lg";
-  variant?: "default" | "destructive";
+  variant?: "default" | "destructive" | "secondary";
 }
 
 export function Button({
@@ -14,14 +14,14 @@ export function Button({
 }: ButtonProps) {
   const variantClasses = {
     default: "bg-[#001F4D] hover:bg-[#001F4D]/90",
-    destructive: "bg-red-600 hover:bg-red-700"
+    destructive: "bg-red-600 hover:bg-red-700",
+    secondary: "!text-gray-700 bg-white border border-gray-300 hover:bg-gray-50",
   };
 
   return (
     <button
-      className={`rounded-md font-semibold text-white focus:outline-none ${
-        size === "sm" ? "px-4 py-2 text-sm" : "px-4 py-2.5 text-sm"
-      } ${fullWidth ? "w-full" : ""} ${variantClasses[variant]} ${className}`}
+      className={`rounded-md font-semibold text-white focus:outline-none ${size === "sm" ? "px-4 py-2 text-sm" : "px-4 py-2.5 text-sm"
+        } ${fullWidth ? "w-full" : ""} ${variantClasses[variant]} ${className}`}
       {...props}
     >
       {children}

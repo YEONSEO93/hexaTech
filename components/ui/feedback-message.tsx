@@ -17,11 +17,11 @@ const FeedbackMessage = ({ type, message }: FeedbackMessageProps) => {
             default:
                 return '';
         }
-    }
+    };
 
     return (
         <p className={`${setTextColor(type)} text-sm mb-4`}>{message}</p>
     );
-}
+};
 
 export default FeedbackMessage;

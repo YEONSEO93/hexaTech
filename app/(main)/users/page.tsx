@@ -9,6 +9,7 @@ import BaseTable, {
 } from "@/components/ui/base-table/base-table";
 import { Database } from "@/types/supabase";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { formatDate } from "@/lib/utils/date";
 
 type UserData = Pick<
   Database["public"]["Tables"]["users"]["Row"],
@@ -134,19 +135,31 @@ export default function UsersPage() {
 
     },
     { field: "role", header: "Role" },
-    { field: "created_at", header: "Created At", sortable: true, filter: true, filterType: "date" },
-    { field: "updated_at", header: "Updated At", sortable: true, filter: true, filterType: "date" },
+    {
+      field: "created_at", header: "Created At", sortable: true, filter: true, filterType: "date", body: (rowData) => (
+        <span>
+          {rowData.updated_at ? formatDate(rowData.created_at) : "N/A"}
+        </span>
+      )
+    },
+    {
+      field: "updated_at", header: "Updated At", sortable: true, filter: true, filterType: "date", body: (rowData) => (
+        <span>
+          {rowData.updated_at ? formatDate(rowData.updated_at) : "N/A"}
+        </span>
+      )
+    },
     {
       field: "company",
       header: "Company",
       sortable: true,
       body: (rowData) => <span>{rowData.company?.name || "N/A"}</span>,
     },
-    {
-      field: "id",
-      header: "Actions",
-      body: (rowData) =>
-        isAdmin ? (
+    ...(isAdmin
+      ? [{
+        field: "actions",
+        header: "Actions",
+        body: (rowData: UserData) => (
           <div className="flex items-center justify-center gap-2">
             <Button
               size="sm"
@@ -158,14 +171,14 @@ export default function UsersPage() {
               size="sm"
               onClick={() => handleDelete(rowData.id)}
               className="rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
-
             >
               Delete
             </Button>
           </div>
-        ) : null,
-      style: { width: "auto", textAlign: "center" },
-    },
+        ),
+        style: { width: "auto", textAlign: "center" },
+      }] as BaseColumnProps<UserData>[]
+      : []),
   ];
 
   return (

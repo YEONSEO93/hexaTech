@@ -42,12 +42,10 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   try {
-    //To check if user is logged in, we can use getUser() method directly, as it only returns a user if there is a valid session token. This way, we can also check the role with user.role without a database query
-
-    //Also refer to Supabase Auth docs (Hook up middleware section): https://supabase.com/docs/guides/auth/server-side/nextjs 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    //Checks session token from cookie and refresh invalid token if needed 
+    const { data: { session }, error: userError } = await supabase.auth.getSession();
     
-    if (userError || !user) {
+    if (userError || !session?.user) {
       console.error('Authentication error:', userError);
       if (!isPathInRoutes(pathname, ROUTES.AUTH)) {
         return createRedirectResponse(request, '/login');
@@ -55,7 +53,7 @@ export async function middleware(request: NextRequest) {
       return res;
     }
 
-    const userRole = user.user_metadata.role;
+    const userRole = session.user.user_metadata.role;
 
     if (!userRole) {
       return createErrorResponse("Role not found", 404);
@@ -74,7 +72,7 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/users/')) {
       const pathParts = pathname.split('/');
       const userIdFromPath = pathParts[2];
-      if (userIdFromPath === user.id) {
+      if (userIdFromPath === session.user.id) {
         return res;
       }
     }
@@ -91,17 +89,22 @@ export async function middleware(request: NextRequest) {
 
     /* -----------Add check for API routes ---------*/
     if (pathname.startsWith('/api/')) {
-    
+
+      // Allow all users to access /api/settings/account
+      if (pathname.startsWith('/api/settings/account')) {
+        return res;
+      }
+
       // Block viewers from any restricted method across all APIs
       if (restrictedMethods.includes(request.method) && userRole === ROLES.VIEWER) {
         return createErrorResponse('Viewers are not allowed to perform this action', 403);
       }
-      
+
       // Block collaborators from accessing non-events APIs
       if (!pathname.startsWith('/api/events') && userRole === ROLES.COLLABORATOR) {
         return createErrorResponse('Collaborators can only access events API', 403);
       }
-      
+
       // Admin has full access, so we don't need additional checks
       return res;
     }

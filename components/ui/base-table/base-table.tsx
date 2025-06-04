@@ -264,7 +264,6 @@ export default function BaseTable<T extends Record<string, unknown>>(
           outlined
           onClick={clearFilter}
         />
-        <Button type="button" icon="pi pi-file" rounded onClick={() => exportCSV(false)} data-pr-tooltip="CSV" />
         <IconField iconPosition="left">
           <InputIcon className="pi pi-search" />
           <InputText
@@ -273,6 +272,7 @@ export default function BaseTable<T extends Record<string, unknown>>(
             placeholder="Keyword Search"
           />
         </IconField>
+        <Button type="button" icon="pi pi-file" rounded onClick={() => exportCSV(false)} data-pr-tooltip="CSV"><span className="ml-2">Export CSV</span></Button>
       </div>
     );
   };

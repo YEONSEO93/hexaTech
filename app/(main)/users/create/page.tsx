@@ -5,13 +5,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/PageHeader";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { CompanySelect } from "@/components/CompanySelect";
 
@@ -124,6 +118,7 @@ export default function CreateUserPage() {
                 type="button"
                 onClick={() => router.back()}
                 disabled={loading}
+                variant="secondary"
               >
                 Cancel
               </Button>
