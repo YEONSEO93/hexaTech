@@ -131,22 +131,19 @@ export default function UsersPage() {
       field: "name",
       header: "Name",
       sortable: true,
-      body: (rowData) => (
-        <div>
-          <span>{rowData.name || "N/A"}</span>
-        </div>
-      ),
+      filter: true,
+
     },
     { field: "role", header: "Role" },
     {
-      field: "created_at", header: "Created At", body: (rowData) => (
+      field: "created_at", header: "Created At", sortable: true, filter: true, filterType: "date", body: (rowData) => (
         <span>
-          {formatDate(rowData.created_at) || "N/A"}
+          {rowData.updated_at ? formatDate(rowData.created_at) : "N/A"}
         </span>
       )
     },
     {
-      field: "updated_at", header: "Updated At", body: (rowData) => (
+      field: "updated_at", header: "Updated At", sortable: true, filter: true, filterType: "date", body: (rowData) => (
         <span>
           {rowData.updated_at ? formatDate(rowData.updated_at) : "N/A"}
         </span>
@@ -155,6 +152,7 @@ export default function UsersPage() {
     {
       field: "company",
       header: "Company",
+      sortable: true,
       body: (rowData) => <span>{rowData.company?.name || "N/A"}</span>,
     },
     ...(isAdmin

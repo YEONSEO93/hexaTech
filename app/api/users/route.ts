@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
           email, 
           role, 
           created_at, 
+          updated_at,
           profile_photo,
           company_id,
           company:company(id, name)

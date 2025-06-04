@@ -39,6 +39,7 @@ export type BaseColumnProps<T> = {
   header: string;
   sortable?: boolean;
   filter?: boolean;
+  type?: DataType;
   filterType?: FilterType;
   style?: CSSProperties;
   body?: (rowData: T) => ReactNode;
@@ -144,7 +145,14 @@ const createFilterElement = <T,>(filterType: FilterType, data?: T[]) => {
           />
         );
       default:
-        return null;
+        return (
+          <InputText
+            value={options.value || ""}
+            onChange={(e) => options.filterCallback(e.target.value, options.index)}
+            placeholder="Search"
+            className="p-column-filter"
+          />
+        );
     }
   };
   FilterElementComponent.displayName = `FilterElement(${filterType})`;
@@ -216,7 +224,7 @@ export default function BaseTable<T extends Record<string, unknown>>(
   const [filters, setFilters] = useState<FiltersObject>({});
   const [selected, setSelected] = useState<SelectedRow>([]);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
-  const dt = useRef(null);
+  const dt = useRef<DataTable<DataTableValueArray> | null>(null);
 
 
   const initFilters = () => {
@@ -227,13 +235,6 @@ export default function BaseTable<T extends Record<string, unknown>>(
   useEffect(() => {
     initFilters();
   }, []);
-
-  const onRowEditComplete = () => { };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const onEdit = (rowData: T) => { };
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const onDelete = (rowData: T) => { };
 
   const clearFilter = () => {
     initFilters();
@@ -299,7 +300,6 @@ export default function BaseTable<T extends Record<string, unknown>>(
       scrollHeight="600px"
       removableSort
       editMode="row"
-      onRowEditComplete={onRowEditComplete}
       selection={selected}
       selectionMode="checkbox"
       onSelectionChange={(e) => setSelected(e.value)}
