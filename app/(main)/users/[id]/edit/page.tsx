@@ -72,7 +72,7 @@ export default function EditUser() {
       setCurrentUserRole(user?.user_metadata?.role || null);
     };
     fetchCurrentUser();
-  }, [id]);
+  }, [id, supabase.auth]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

@@ -85,7 +85,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       subscription?.unsubscribe();
     };
-  }, []);
+  }, [supabase]);
 
   return (
     <UserContext.Provider value={{ userId, userRole, isLoading }}>

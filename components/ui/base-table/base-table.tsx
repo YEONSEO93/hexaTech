@@ -5,6 +5,7 @@ import {
   useEffect,
   ChangeEvent,
   useRef,
+  useCallback,
 } from "react";
 import { FilterMatchMode } from "primereact/api";
 
@@ -227,14 +228,14 @@ export default function BaseTable<T extends Record<string, unknown>>(
   const dt = useRef<DataTable<DataTableValueArray> | null>(null);
 
 
-  const initFilters = () => {
+  const initFilters = useCallback(() => {
     setFilters(generateFilters(columns));
     setGlobalFilterValue("");
-  };
+  }, [columns]);
 
   useEffect(() => {
     initFilters();
-  }, []);
+  }, [initFilters]);
 
   const clearFilter = () => {
     initFilters();

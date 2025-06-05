@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/UserContext";
 import BaseTable, {
@@ -48,7 +48,7 @@ export default function EventList() {
     return formattedDate;
   }
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     setLoading(true);
     const offset = page * PAGE_SIZE;
 
@@ -58,11 +58,11 @@ export default function EventList() {
     setEvents(data.data);
     setTotal(data.total);
     setLoading(false);
-  };
+  }, [page]);
 
   useEffect(() => {
     fetchEvents();
-  }, [page]);
+  }, [fetchEvents]);
 
   const handleDelete = async (id: number) => {
     const confirm = window.confirm(
