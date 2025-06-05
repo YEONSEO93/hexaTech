@@ -32,7 +32,7 @@ export default function EmailConfirmedPage() {
             }
         }
         syncEmail();
-    }, []);
+    }, [supabase]);
 
     return (
         <div className="max-w-md mx-auto mt-16 p-6 bg-white rounded shadow">

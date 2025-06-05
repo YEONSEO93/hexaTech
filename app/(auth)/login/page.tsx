@@ -33,7 +33,6 @@ const LoginPage = () => {
       const { data: signInData, error: signInError } = await signInWithEmail(email.trim(), password.trim());
 
       if (signInError) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const message = (signInError as any)?.message || 'Failed to sign in. Please check your credentials.';
         throw new Error(message);
       }

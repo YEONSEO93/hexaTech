@@ -172,7 +172,7 @@ export default function UsersPage() {
               onClick={() => handleDelete(rowData.id)}
               className="rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700"
             >
-              Delete
+              {deleteLoading === rowData.id ? "Deleting..." : "Delete"}
             </Button>
           </div>
         ),
