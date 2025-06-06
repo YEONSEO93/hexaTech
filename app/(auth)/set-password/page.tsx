@@ -40,6 +40,7 @@ export default function SetPasswordPage() {
           ? 'Email link is invalid or has expired. Please request a new one.'
           : errorDescription || 'Failed to verify link.';
         setError(displayError);
+        if (timerId) { clearTimeout(timerId); timerId = null; }
         setLoading(false);
         return;
       }
@@ -52,6 +53,7 @@ export default function SetPasswordPage() {
 
         if (sessionError) {
           setError('Failed to process authentication token after verification.');
+          if (timerId) { clearTimeout(timerId); timerId = null; }
           setLoading(false);
         } else if (data.session) {
           const user = data.session.user;
@@ -80,7 +82,7 @@ export default function SetPasswordPage() {
           setLoading(false);
         } else {
           setError('Failed to establish a valid session after verification.');
-          if (timerId) clearTimeout(timerId);
+          if (timerId) { clearTimeout(timerId); timerId = null; }
           setLoading(false);
         }
       } else {
@@ -91,7 +93,7 @@ export default function SetPasswordPage() {
         } else {
           setError('Invalid access. Please use the link provided in your email.');
         }
-        if (timerId) clearTimeout(timerId);
+        if (timerId) { clearTimeout(timerId); timerId = null; }
         setLoading(false);
       }
     };
@@ -99,14 +101,12 @@ export default function SetPasswordPage() {
     processHash();
 
     timerId = setTimeout(() => {
-      if (loading) {
-        setError("An unexpected error occurred while processing the link. Please try again.");
-        setLoading(false);
-      }
+      setError("An unexpected error occurred while processing the link. Please try again.");
+      setLoading(false);
     }, 15000);
 
     return () => {
-      if (timerId) clearTimeout(timerId);
+      if (timerId) { clearTimeout(timerId); timerId = null; }
     };
 
   }, [supabase, router]);

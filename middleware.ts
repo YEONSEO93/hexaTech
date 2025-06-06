@@ -46,6 +46,11 @@ export async function middleware(request: NextRequest) {
     const { data: { session }, error: userError } = await supabase.auth.getSession();
     
     if (userError || !session?.user) {
+      if (userError?.message.includes('Refresh Token Not Found') || userError?.code === 'refresh_token_not_found') {
+        console.warn('Refresh token invalid or missing. Stopping retries and logging out.');
+        await supabase.auth.signOut();
+        return createRedirectResponse(request, '/login');
+      }
       console.error('Authentication error:', userError);
       if (!isPathInRoutes(pathname, ROUTES.AUTH)) {
         return createRedirectResponse(request, '/login');
@@ -122,7 +127,6 @@ export const config = {
   matcher: [
     '/',
     '/login',
-    '/set-password',
     '/dashboard/:path*',
     '/users/:path*',
     '/events/:path*',

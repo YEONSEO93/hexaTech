@@ -27,7 +27,6 @@
     "primereact": "^10.9.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-hook-form": "^7.55.0",
     "react-spinners": "^0.17.0",
     "recharts": "^2.15.3",
     "tailwind-merge": "^3.1.0",
@@ -43,7 +42,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
-    "sass": "^1.86.3",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"

@@ -8,9 +8,8 @@ import { SettingsLayout } from "@/components/layouts/SettingsLayout";
 import { useUserProfile } from "@/lib/hooks/useUserProfile";
 import { selectAndValidatePhoto, uploadProfilePhotoToSupabase } from "@/lib/utils/photo";
 import { createSupabaseClientComponentClient } from "@/lib/supabase/client";
-import { use, useState } from "react";
+import { useState } from "react";
 import FeedbackMessage from "@/components/ui/feedback-message";
-import { set } from "zod";
 
 export default function Setting() {
   const { userProfile, refetch } = useUserProfile();
